@@ -2,8 +2,11 @@
 //
 
 #include "pch.h"
+#include <WinSock2.h>
 #include "framework.h"
 #include "rawFood.h"
+#include "ready.h"
+
 
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -11,6 +14,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-	MessageBoxA(NULL, "hello", "introduct", MB_OK);
+	// 准备工作
+	if (!IsReady()) {
+		return -1;
+	}
+
 	return 0;
 }
