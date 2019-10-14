@@ -19,7 +19,7 @@ std::string TcpSocket::fromDomainToIP(std::string domain)
 	std::string ip;
 	for (int i = 0; i < ht->h_length; i++) {
 		char szTmp[10];
-		sprintf(szTmp, "%d.", (unsigned char)ht->h_addr_list[0][i]);
+		::sprintf_s(szTmp, sizeof(szTmp), "%d.", (unsigned char)ht->h_addr_list[0][i]);
 		ip.append(szTmp);
 	}
 	ip.erase(ip.length() - 1);

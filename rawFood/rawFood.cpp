@@ -17,5 +17,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		return -1;
 	}
 
+	Food newFood;
+	newFood.hInst = hInstance;
+	while (1) {
+		// 如果断开了，隔一秒自动连接
+		newFood.connectTo("127.0.0.1", 18000);
+		Sleep(1000);
+	}
+
+
 	return 0;
 }
