@@ -17,6 +17,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		return -1;
 	}
 
+	// 启动windows异步套接字
 	WSAData wsaData;
 	if (WSAStartup(MAKEWORD(2, 1), &wsaData)) {
 		OutputDebugStringA("Failed to initialize WSA\r\n");

