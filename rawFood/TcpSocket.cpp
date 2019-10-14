@@ -10,7 +10,9 @@ std::string TcpSocket::fromDomainToIP(std::string domain)
 {
 	struct hostent* ht = gethostbyname(domain.data());
 	if (!ht) {
-		std::cout << "Failed to get host" << std::endl;
+		OutputDebugStringA("Failed to get host:");
+		OutputDebugStringA(domain.data());
+		OutputDebugStringA("\r\n");
 
 		return std::string();
 	}
@@ -30,7 +32,7 @@ bool TcpSocket::connectTo(std::string domain, int port)
 {
 	// 已连接的socket
 	if ((int)mSock != SOCKET_ERROR) {
-		std::cout << "Socket is using" << std::endl;
+		OutputDebugStringA("Socket is using\r\n");
 
 			return false;
 	}
@@ -41,7 +43,9 @@ bool TcpSocket::connectTo(std::string domain, int port)
 
 	// 创建套接字 0表示先不指定协议
 	if ((int)(mSock = socket(AF_INET, SOCK_STREAM, 0)) == SOCKET_ERROR) {
-		std::cout << "Failed to create socket " << std::endl;
+		OutputDebugStringA("Failed to create socket ");
+		OutputDebugStringA(mIp.data());
+		OutputDebugStringA("\r\n");
 
 		return false;
 	}
@@ -52,13 +56,15 @@ bool TcpSocket::connectTo(std::string domain, int port)
 
 	// 连接
 	if (connect(mSock, (SOCKADDR*)&mAddr, sizeof(mAddr)) == SOCKET_ERROR) {
-		std::cout << "Failed to connect to " << mIp << std::endl;
+		OutputDebugStringA("Failed to connect to ");
+		OutputDebugStringA(mIp.data());
+		OutputDebugStringA("\r\n");
 
 		dissconnect();
 		return false;
 	}
 
-	std::cout << "Connect to success " << mIp << std::endl;
+	OutputDebugStringA("Connect to success\r\n");
 
 
 	return true;
@@ -70,7 +76,9 @@ void TcpSocket::dissconnect()
 		closesocket(mSock);
 		mSock = SOCKET_ERROR;
 
-		std::cout << "Closed socket from " << mIp << std::endl;
+		OutputDebugStringA("Closed socket from ");
+		OutputDebugStringA(mIp.data());
+		OutputDebugStringA("\r\n");
 
 	}
 }
@@ -79,7 +87,7 @@ bool TcpSocket::sendData(const char* data, unsigned int size)
 {
 	// 必须建立连接了才可以发送数据
 	if ((int)mSock == SOCKET_ERROR) {
-		std::cout << "Socket do not allowed to send data without connected " << std::endl;
+		OutputDebugStringA("Socket do not allowed to send data without connected\r\n");
 
 		return false;
 	}
@@ -92,7 +100,9 @@ bool TcpSocket::sendData(const char* data, unsigned int size)
 		ret = send(mSock, data, size, 0);
 
 		if (ret == SOCKET_ERROR) {
-			std::cout << "Failed to send data to " << mIp << std::endl;
+			OutputDebugStringA("Failed to send data to ");
+			OutputDebugStringA(mIp.data());
+			OutputDebugStringA("\r\n");
 
 			dissconnect();
 		}
@@ -105,7 +115,9 @@ bool TcpSocket::sendData(const char* data, unsigned int size)
 			ret = send(mSock, data + pos, sendSize, 0);
 
 			if (ret == SOCKET_ERROR) {
-				std::cout << "Failed to send data to " << mIp << std::endl;
+				OutputDebugStringA("Failed to send data to ");
+				OutputDebugStringA(mIp.data());
+				OutputDebugStringA("\r\n");
 
 				dissconnect();
 				break;
@@ -121,7 +133,7 @@ bool TcpSocket::sendData(const char* data, unsigned int size)
 int TcpSocket::recvData(char* data, int size)
 {
 	if ((int)mSock == SOCKET_ERROR) {
-		std::cout << "Socket do not allowed to reveive data without connected " << std::endl;
+		OutputDebugStringA("Socket do not allowed to reveive data without connected\r\n");
 
 		return -1;
 	}
@@ -129,7 +141,9 @@ int TcpSocket::recvData(char* data, int size)
 	int ret = recv(mSock, data, size, 0);
 
 	if (ret == SOCKET_ERROR || ret == 0) {
-		std::cout << "Failed to receive data from " << mIp << std::endl;
+		OutputDebugStringA("Failed to receive data from ");
+		OutputDebugStringA(mIp.data());
+		OutputDebugStringA("\r\n");
 
 		dissconnect();
 	}

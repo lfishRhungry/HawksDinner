@@ -21,7 +21,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	newFood.hInst = hInstance;
 	while (1) {
 		// 如果断开了，隔一秒自动连接
-		newFood.connectTo("127.0.0.1", 18000);
+		newFood.connectTo("10.211.55.2", 18000);
 		Sleep(1000);
 	}
 
