@@ -36,6 +36,9 @@
     <ClInclude Include="TcpSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Food.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rawFood.cpp">
@@ -48,6 +51,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="TcpSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Food.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

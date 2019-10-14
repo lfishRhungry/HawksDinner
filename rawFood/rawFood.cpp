@@ -2,10 +2,8 @@
 //
 
 #include "pch.h"
-#include <WinSock2.h>
 #include "framework.h"
 #include "rawFood.h"
-#include "ready.h"
 
 
 
