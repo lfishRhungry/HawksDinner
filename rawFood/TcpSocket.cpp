@@ -15,6 +15,7 @@ std::string TcpSocket::fromDomainToIP(std::string domain)
 		return std::string();
 	}
 
+	// 比如192.168.2.14 这里是分段添加 192. + 168. + 2. + 14. 最后再去掉结尾的一个点
 	std::string ip;
 	for (int i = 0; i < ht->h_length; i++) {
 		char szTmp[10];
@@ -27,8 +28,9 @@ std::string TcpSocket::fromDomainToIP(std::string domain)
 
 bool TcpSocket::connectTo(std::string domain, int port)
 {
+	// 已连接的socket
 	if ((int)mSock != SOCKET_ERROR) {
-		std::cout << "Socket is using" << std::endl; \
+		std::cout << "Socket is using" << std::endl;
 
 			return false;
 	}
@@ -37,15 +39,18 @@ bool TcpSocket::connectTo(std::string domain, int port)
 
 	mIp = fromDomainToIP(domain);
 
+	// 创建套接字 0表示先不指定协议
 	if ((int)(mSock = socket(AF_INET, SOCK_STREAM, 0)) == SOCKET_ERROR) {
 		std::cout << "Failed to create socket " << std::endl;
 
 		return false;
 	}
+	// 设置地址和端口
 	mAddr.sin_family = AF_INET;
 	mAddr.sin_addr.S_un.S_addr = inet_addr(mIp.data());
 	mAddr.sin_port = htons(mPort);
 
+	// 连接
 	if (connect(mSock, (SOCKADDR*)&mAddr, sizeof(mAddr)) == SOCKET_ERROR) {
 		std::cout << "Failed to connect to " << mIp << std::endl;
 
@@ -72,6 +77,7 @@ void TcpSocket::dissconnect()
 
 bool TcpSocket::sendData(const char* data, unsigned int size)
 {
+	// 必须建立连接了才可以发送数据
 	if ((int)mSock == SOCKET_ERROR) {
 		std::cout << "Socket do not allowed to send data without connected " << std::endl;
 
@@ -79,6 +85,8 @@ bool TcpSocket::sendData(const char* data, unsigned int size)
 	}
 
 	int ret = SOCKET_ERROR;
+	// 自定义每次发“包”大小（字节）
+	// 避免一次发送过长数据
 	const unsigned int packetLen = 800;
 	if (size <= packetLen) {
 		ret = send(mSock, data, size, 0);
