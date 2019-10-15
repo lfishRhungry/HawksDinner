@@ -3,6 +3,7 @@
 
 #pragma once
 #include "tcpsocket.h"
+#include "Keybd.h"
 #include <string>
 #include <map>
 #include <vector>

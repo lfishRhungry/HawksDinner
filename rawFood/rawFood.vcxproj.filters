@@ -39,6 +39,12 @@
     <ClInclude Include="Food.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Keybd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualKeyToAscii.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rawFood.cpp">
@@ -54,6 +60,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Food.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Keybd.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

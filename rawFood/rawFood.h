@@ -4,3 +4,5 @@
 #include <WinSock2.h>
 #include "ready.h"
 #include "Food.h"
+
+#pragma comment(lib, "Ws2_32.lib")

