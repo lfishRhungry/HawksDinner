@@ -160,6 +160,7 @@
     <ClInclude Include="rawFood.h" />
     <ClInclude Include="ready.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="Shell.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TcpSocket.h" />
     <ClInclude Include="VirtualKeyToAscii.h" />
@@ -175,6 +176,7 @@
     </ClCompile>
     <ClCompile Include="rawFood.cpp" />
     <ClCompile Include="ready.cpp" />
+    <ClCompile Include="Shell.cpp" />
     <ClCompile Include="TcpSocket.cpp" />
   </ItemGroup>
   <ItemGroup>

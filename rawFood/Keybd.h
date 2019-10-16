@@ -8,7 +8,6 @@
 class Keybd
 {
 public:
-	Keybd();
 	~Keybd();
 
 	// 本类入口函数

