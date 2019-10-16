@@ -4,6 +4,7 @@
 #pragma once
 #include "tcpsocket.h"
 #include "Keybd.h"
+#include "Shell.h"
 #include <string>
 #include <map>
 #include <vector>

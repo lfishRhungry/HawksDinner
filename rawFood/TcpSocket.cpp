@@ -151,3 +151,6 @@ int TcpSocket::recvData(char* data, int size)
 	return ret;
 }
 
+SOCKET TcpSocket::getSocket() {
+	return mSock;
+}

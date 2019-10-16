@@ -11,6 +11,9 @@ public:
 	// 初始化mSock为无效值
 	TcpSocket();
 
+	// 获取原始socket
+	SOCKET getSocket();
+
 	static std::string fromDomainToIP(std::string domain);
 
 	// 将socket连接到指定域名
