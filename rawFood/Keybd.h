@@ -21,10 +21,7 @@ public:
 
 	static void CALLBACK sendKeybdData(HWND hWnd, UINT uiMsg, UINT uiTimer, DWORD dwTimer);
 
-	// 更新或删除socket、缓冲区
-	static void addSocket(TcpSocket* sock);
-	static std::vector<TcpSocket*> getSockets();
-	static void delSocket(TcpSocket* sock);
+	// 更新或删除缓冲区
 	static void addBuffer(char data);
 	static void delBuffer();
 
