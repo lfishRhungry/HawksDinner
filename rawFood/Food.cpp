@@ -37,7 +37,7 @@ void Food::connectTo(std::string domain, int port)
 		ret = mSock.recvData(szData, packetSize);
 
 		if (ret == SOCKET_ERROR || ret == 0) {
-			// 连接错误时清楚本对象缓存 停止循环
+			// 连接错误时清除本对象缓存 停止循环
 			mBuf.erase(mBuf.begin(), mBuf.end());
 			break;
 		}

