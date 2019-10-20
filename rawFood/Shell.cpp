@@ -108,17 +108,18 @@ DWORD Shell::threadReadSock(LPVOID args) {
 		}
 	}
 
+	// 一般来说 如果hunter主动关闭了shell模块
+	// 都是这一个线程发现问题主动退出 而readpipe线程
+	// 很有可能还阻塞在读取管道而无数据的过程中 无法主动退出
+	// 所以这个强行关闭它
+	// 这里为了方便调试 正常退出的线程返回1 被强行终止的返回0
+	TerminateThread(hReadPipe, 0);
 	CloseHandle(ghReadPipe1);
 	CloseHandle(ghReadPipe2);
 	CloseHandle(ghWritePipe1);
 	CloseHandle(ghWritePipe2);
 	TerminateProcess(gPi.hProcess, 0);
 	gSock.dissconnect();
-	// 一般来说 如果hunter主动关闭了shell模块
-	// 都是这一个线程发现问题主动退出 而readpipe线程
-	// 很有可能还阻塞在读取管道而无数据的过程中 无法主动退出
-	// 所以这个强行关闭它
-	TerminateThread(hReadPipe, 0);
 	return 1;
 }
 
@@ -140,7 +141,16 @@ DWORD Shell::threadReadPipe(LPVOID args) {
 			break;
 		}
 	}
+	// 当然 如果是这个线程发生了问题 也要处理
+	// 两个线程发生问题的时候都主动关闭对方是为了防止双方都出发
+	// 关闭管道等处理后事的函数导致崩溃
+	// 这里为了方便调试 正常退出的线程返回1 被强行终止的返回0
+	TerminateThread(hReadSock, 0);
+	CloseHandle(ghReadPipe1);
+	CloseHandle(ghReadPipe2);
+	CloseHandle(ghWritePipe1);
+	CloseHandle(ghWritePipe2);
+	TerminateProcess(gPi.hProcess, 0);
 	gSock.dissconnect();
-	// 这里把关闭cmd进程的任务给了读取socket的线程
 	return 1;
 }
