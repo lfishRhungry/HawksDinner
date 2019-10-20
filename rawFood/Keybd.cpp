@@ -180,8 +180,6 @@ void Keybd::sendKeybdData(HWND, UINT, UINT, DWORD)
 			if (s_hWnd) {
 				// 关闭计时器
 				KillTimer(s_hWnd, 0);
-				// 删除socket
-				gSock.dissconnect();
 				// 关闭窗口
 				DestroyWindow(s_hWnd);
 			}
