@@ -153,6 +153,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="File.h" />
     <ClInclude Include="Food.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Keybd.h" />
@@ -166,6 +167,7 @@
     <ClInclude Include="VirtualKeyToAscii.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="File.cpp" />
     <ClCompile Include="Food.cpp" />
     <ClCompile Include="Keybd.cpp" />
     <ClCompile Include="pch.cpp">
