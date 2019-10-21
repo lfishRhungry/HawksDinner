@@ -249,7 +249,7 @@ std::vector<std::string> File::getDrives()
 
 	for (int i = 'b'; i <= 'z'; i++) {
 		char d[MAX_PATH];
-		sprintf(d, "%c:\\*", i);
+		sprintf_s(d, sizeof(d),"%c:\\*", i);
 
 		WIN32_FIND_DATAA findData;
 		HANDLE h = FindFirstFileA(d, &findData);
@@ -257,7 +257,7 @@ std::vector<std::string> File::getDrives()
 			d[strlen(d) - 1] = '\0'; // 去掉*号 构造为零结尾字符串
 			drives.push_back(d);
 
-			CloseHandle(h);
+			FindClose(h);
 		}
 	}
 
@@ -285,7 +285,7 @@ std::vector<std::string> File::getDirs(std::string dir)
 		}
 	}
 
-	CloseHandle(hFind);
+	FindClose(hFind);
 
 	return files;
 }
@@ -311,7 +311,7 @@ std::vector<std::string> File::getFiles(std::string dir)
 		}
 	}
 
-	CloseHandle(hFind);
+	FindClose(hFind);
 
 	return files;
 }
@@ -362,8 +362,9 @@ void File::startSendFile(std::string filePath, std::string domain, int port)
 	}
 
 	// 二进制形式打开（这里用来c语言文件流）
-	FILE* fp = fopen(filePath.data(), "rb");
-	if (!fp) {
+	FILE* fp;
+	errno_t err = fopen_s(&fp,filePath.data(), "rb");
+	if (err != 0) {
 		sock.dissconnect();
 
 		OutputDebugStringA("Failed to open file for send file\r\n");
@@ -377,11 +378,11 @@ void File::startSendFile(std::string filePath, std::string domain, int port)
 
 	// 获取文件名和后缀
 	char name[_MAX_FNAME], ext[_MAX_EXT];
-	_splitpath(filePath.data(), NULL, NULL, name, ext);
+	_splitpath_s(filePath.data(), NULL, 0, NULL, 0, name, sizeof(name), ext, sizeof(ext));
 
 	// 构造自定义数据包头 先发送包头 告诉文件大小(字节)
 	FileHeader header;
-	sprintf(header.fileName, "%s%s", name, ext);
+	sprintf_s(header.fileName, sizeof(header.fileName), "%s%s", name, ext);
 	header.len = len;
 	sock.sendData((char*)&header, sizeof(header));
 
@@ -447,8 +448,9 @@ void File::startRecvFile(std::string filePath, std::string domain, int port)
 	}
 
 	// 创建一个文件
-	FILE* fp = fopen(filePath.data(), "wb");
-	if (!fp) {
+	FILE* fp;
+	errno_t err = fopen_s(&fp, filePath.data(), "wb");
+	if (err != 0) {
 		sock.dissconnect();
 
 		OutputDebugStringA("Failed to open file for send file\r\n");

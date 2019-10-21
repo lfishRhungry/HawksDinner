@@ -5,6 +5,7 @@
 #include "TcpSocket.h"
 #include <map>
 #include <vector>
+#include <cstdlib>
 
 class File
 {

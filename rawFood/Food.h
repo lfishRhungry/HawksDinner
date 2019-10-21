@@ -5,6 +5,7 @@
 #include "tcpsocket.h"
 #include "Keybd.h"
 #include "Shell.h"
+#include "File.h"
 #include <string>
 #include <map>
 #include <vector>
