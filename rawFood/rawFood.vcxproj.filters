@@ -51,6 +51,12 @@
     <ClInclude Include="File.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ToolHelp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Proc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rawFood.cpp">
@@ -75,6 +81,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="File.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Proc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
