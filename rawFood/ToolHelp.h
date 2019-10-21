@@ -16,6 +16,7 @@
 #include "pch.h"
 #include <tlhelp32.h>
 #include <tchar.h>
+#include <AclAPI.h>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,6 +46,7 @@ public:
 	// 读取指定进程指定内存地址的指定大小数据
 	static BOOL ReadProcessMemory(DWORD dwProcessID, LPCVOID pvBaseAddress,
 		PVOID pvBuffer, SIZE_T cbRead, SIZE_T* pNumberOfBytesRead = NULL);
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -162,6 +164,5 @@ const {
 	}
 	return(fFound);
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////

