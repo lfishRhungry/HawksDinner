@@ -17,9 +17,9 @@ public:
 	// ------------------------------定义进程管理命令--------------------------------
 	// hunter发送至食物
 	std::string CmdFreshProcs;           // 刷新进程列表
-	std::string CmdDeleteProc;           // 删除进程
+	std::string CmdKillProc;             // kill进程
 	// 食物发送至hunter
-	std::string CmdSendProc;            // 发送一个进程信息
+	std::string CmdSendProc;             // 发送一个进程信息
 	std::string CmdKillProcSuccess;      // kill进程成功
 	std::string CmdKillProcFailed;       // kill进程失败
 	// 分割与结束符

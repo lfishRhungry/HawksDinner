@@ -25,7 +25,7 @@ public:
 	std::string CmdFile;
 	std::string CmdShell;
 	std::string CmdDdos;
-	std::string CmdProcess;
+	std::string CmdProc;
 
 	std::string CmdSendBox;
 	std::string CmdReboot;

@@ -7,7 +7,7 @@ Proc::Proc() {
 
 	// hunter发送至食物
 	CmdFreshProcs = "FRESH_PROCS";
-	CmdDeleteProc = "DELETE_PROC";
+	CmdKillProc = "KILL_PROC";
 	// 食物发送至hunter
 	CmdSendProc = "SEND_PROC";
 	CmdKillProcSuccess = "KILL_SUCCESS";
@@ -124,7 +124,7 @@ void Proc::processCmd(TcpSocket* sock, std::string& cmd, std::string& data)
 		return;
 	}
 
-	if (cmd == gProc.CmdDeleteProc) {
+	if (cmd == gProc.CmdKillProc) {
 		doKillProc(sock, args);
 		return;
 	}

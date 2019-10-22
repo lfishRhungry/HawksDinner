@@ -7,7 +7,7 @@ Food::Food() {
 	CmdFile = "CMD_FILE";
 	CmdShell = "CMD_SHELL";
 	CmdDdos = "CMD_DDOS";
-	CmdProcess = "CMD_PROC";
+	CmdProc = "CMD_PROC";
 	CmdSendBox = "SENDBOX";
 	CmdReboot = "REBOOT";
 	CmdOffline = "OFFLINE";
@@ -248,7 +248,7 @@ void Food::processCmd(std::string& cmd, std::string& data)
 		return;
 	}
 
-	if (cmd == CmdProcess) {
+	if (cmd == CmdProc) {
 		doProc(args);
 		return;
 	}
