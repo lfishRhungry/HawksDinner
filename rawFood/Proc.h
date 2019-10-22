@@ -45,15 +45,5 @@ public:
 	// 辅助函数
 	static BOOL GetProcessOwner(HANDLE hProcess, LPTSTR szOwner, size_t cchSize); // 获取进程所有者
 	static BOOL GetProcessOwner(DWORD PID, LPTSTR szOwner, DWORD cchSize);
-	static BOOL GetProcessCmdLine(HANDLE hProcess, LPTSTR szCmdLine, DWORD Size); // 获取进程命令行信息
-	static BOOL GetProcessCmdLine(DWORD PID, LPTSTR szCmdLine, DWORD Size);
-	static NTSTATUS _NtQueryInformationProcess(
-		HANDLE hProcess,
-		PROCESSINFOCLASS pic,
-		PVOID pPI,
-		ULONG cbSize,
-		PULONG pLength
-	);
-
 };
 

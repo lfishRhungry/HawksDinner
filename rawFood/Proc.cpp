@@ -1,29 +1,6 @@
 #include "pch.h"
 #include "Proc.h"
 
-// 为了获取PEB结构
-typedef struct
-{
-	DWORD Filler[4];
-	DWORD InfoBlockAddress;
-} __PEB;
-
-typedef struct
-{
-	DWORD Filler[17];
-	DWORD wszCmdLineAddress;
-} __INFOBLOCK;
-
-// 获取未显式导出的NtQueryInformationProcess函数 在winternl.h中被声明
-// 主要是为了获取PEB结构 从而得到指定进程的命令行信息
-typedef NTSTATUS(CALLBACK* PFN_NTQUERYINFORMATIONPROCESS)(
-	HANDLE ProcessHandle,
-	PROCESSINFOCLASS ProcessInformationClass,
-	PVOID ProcessInformation,
-	ULONG ProcessInformationLength,
-	PULONG ReturnLength OPTIONAL
-	);
-
 static Proc gProc;
 
 Proc::Proc() {
@@ -172,18 +149,10 @@ void Proc::doFreshProcs(TcpSocket* sock) {
 		CHAR szPid[8];
 		_itoa_s((int)pe.th32ProcessID, szPid, sizeof(szPid), 10);
 		// 获取进程所有者
-		// 显示进程所有者
 		TCHAR szOwner[MAX_PATH + 1];
 		if (!GetProcessOwner(pe.th32ProcessID, szOwner, MAX_PATH)) {
 			StringCchPrintf(szOwner, sizeof(szOwner), "Cannot get");
 		}
-
-		//拿到命令行信息
-		TCHAR szCmdLine[1024];
-		if (!GetProcessCmdLine(pe.th32ProcessID, szCmdLine, _countof(szCmdLine))) {
-			StringCchPrintf(szCmdLine, sizeof(szOwner), "Cannot get");
-		}
-
 		// 拼接返回信息
 		data.clear();
 		data.append(gProc.CmdSendProc + gProc.CmdSplit);
@@ -192,13 +161,10 @@ void Proc::doFreshProcs(TcpSocket* sock) {
 		data.append("PID" + gProc.CmdSplit);
 		data.append(szPid + gProc.CmdSplit);
 		data.append("OWNER" + gProc.CmdSplit);
-		data.append(szOwner + gProc.CmdSplit);
-		data.append("COMMAND" + gProc.CmdSplit);
-		data.append(szCmdLine + gProc.CmdEnd);
+		data.append(szOwner + gProc.CmdEnd);
 		// 发送
 		sock->sendData(data.data(), data.size());
 	}
-
 }
 
 void Proc::doKillProc(TcpSocket* sock, std::map<std::string, std::string>& args) {
@@ -322,130 +288,4 @@ BOOL Proc::GetProcessOwner(DWORD PID, LPTSTR szOwner, DWORD cchSize) {
 	CloseHandle(hProcess);
 
 	return(bReturn);
-}
-
-
-BOOL Proc::GetProcessCmdLine(HANDLE hProcess, LPTSTR szCmdLine, DWORD Size) {
-
-
-
-	// 参数检查
-	if ((hProcess == nullptr) || (szCmdLine == nullptr) || (Size == 0))
-		return(FALSE);
-
-	// 0. 首先要获得进程的PEB地址
-	DWORD dwSize;
-	SIZE_T size;
-	PROCESS_BASIC_INFORMATION  pbi;
-	// 尽管PEB结构在xp系统中始终是在进程虚拟地址空间中的0x7ffdf000位置
-	// 但是PEB的地址在每一版本Windows中是有区别的
-	// 这个才是拿到PEB的正确方法
-	// 先通过NtQueryInformationProcess函数拿到PROCESS_BASIC_INFORMATION结构
-	// NtQueryInformationProcess函数失败时会返回负数
-	if (0 > _NtQueryInformationProcess(
-		hProcess,
-		ProcessBasicInformation,
-		&pbi,
-		sizeof(pbi),
-		&dwSize)) {
-		return FALSE;
-	}
-
-	// 1. 通过pbi提供的PEB地址找到进程环境快
-	__PEB PEB;
-	size = dwSize;
-	if (!ReadProcessMemory(
-		hProcess,
-		pbi.PebBaseAddress,
-		&PEB,
-		sizeof(PEB),
-		&size)) {
-		return(FALSE);
-	}
-
-	// 2. 从PEB结构中获取指向包含进程命令行信息的结构的指针
-	__INFOBLOCK Block;
-	if (!ReadProcessMemory(
-		hProcess,
-		(LPVOID)PEB.InfoBlockAddress,
-		&Block,
-		sizeof(Block),
-		&size)) {
-		return(FALSE);
-	}
-
-	// 3. 获取命令行信息 注意 是用Unicode去接的
-	wchar_t wszCmdLine[MAX_PATH + 1];
-	if (!ReadProcessMemory(
-		hProcess,
-		(LPVOID)Block.wszCmdLineAddress,
-		wszCmdLine,
-		MAX_PATH * sizeof(wchar_t),
-		&size)) {
-		return(FALSE);
-	}
-
-	//    文件路径有可能是这两种形式"c:\...\app.exe" 或 c:\...\app.exe
-	wchar_t* pPos = wszCmdLine; // 拿到第一个宽字符位置
-
-	// 将已经跳过文件路径的命令行信息复制回去
-	if (pPos != nullptr && *pPos != L'\0') {
-
-		WideCharToMultiByte(CP_OEMCP, 0, wszCmdLine, _countof(wszCmdLine), szCmdLine, sizeof(szCmdLine), NULL, FALSE);
-	}
-	else {
-		// 设置默认值
-		StringCchPrintf(szCmdLine, Size, "Unknown");
-	}
-	// 所有都没问题 返回true
-	return(TRUE);
-}
-
-// 通过pid获取指定进程命令行信息
-BOOL Proc::GetProcessCmdLine(DWORD PID, LPTSTR szCmdLine, DWORD Size) {
-
-	// 参数检查
-	if ((PID <= 0) || (szCmdLine == nullptr))
-		return(FALSE);
-
-	// 打开指定进程对象 看是否有权限查看
-	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, PID);
-	if (hProcess == nullptr)
-		return(FALSE);
-	// 老套路 执行上面版本的函数
-	BOOL bReturn = GetProcessCmdLine(hProcess, szCmdLine, Size);
-
-	// 释放句柄
-	CloseHandle(hProcess);
-
-	return(bReturn);
-}
-
-
-// 封装了显式导入的NtQueryInformationProcess
-NTSTATUS Proc::_NtQueryInformationProcess(
-	HANDLE hProcess,
-	PROCESSINFOCLASS pic,
-	PVOID pPI,
-	ULONG cbSize,
-	PULONG pLength
-) {
-
-	HMODULE hNtDll = LoadLibrary(TEXT("ntdll.dll"));
-	if (hNtDll == nullptr) {
-		return(-1);
-	}
-
-	NTSTATUS lStatus = -1;  // 默认返回-1
-
-	// 拿到NtQueryInformationProcess函数本尊
-	// 注意：dll中的函数名都是char
-	PFN_NTQUERYINFORMATIONPROCESS pfnNtQIP =
-		(PFN_NTQUERYINFORMATIONPROCESS)GetProcAddress(hNtDll, "NtQueryInformationProcess");
-	if (pfnNtQIP != nullptr) {
-		lStatus = pfnNtQIP(hProcess, pic, pPI, cbSize, pLength);
-	}
-	// 释放动态库
-	FreeLibrary(hNtDll);
-	return(lStatus); // 返回NTSTATUS结构
 }
