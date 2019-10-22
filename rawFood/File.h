@@ -30,7 +30,7 @@ public:
 	std::string CmdFileSplit;
 	// -------------------------定义文件操作相关指令(完)---------------------------------
 
-	// 此类入口函数 跟Keybd和shell模块形式差不多
+	// 此类入口函数 跟Keybd和shell模块形式差不多 只负责来自hunter的命令解析
 	static void startByNewThread(std::string domain, int port);
 	static DWORD WINAPI fileThreadProc(LPVOID args);
 	static void startFile(std::string domain, int port);
