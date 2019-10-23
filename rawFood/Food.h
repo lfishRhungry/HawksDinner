@@ -7,6 +7,7 @@
 #include "Shell.h"
 #include "File.h"
 #include "Proc.h"
+#include "Ddos.h"
 #include <string>
 #include <map>
 #include <vector>
