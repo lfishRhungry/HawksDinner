@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Ddos.h" />
+    <ClInclude Include="Delete.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="Food.h" />
     <ClInclude Include="framework.h" />
@@ -171,6 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Ddos.cpp" />
+    <ClCompile Include="Delete.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="Food.cpp" />
     <ClCompile Include="Keybd.cpp" />

@@ -8,3 +8,4 @@ BOOL IsAlreadyExiting();
 
 // 是否已做好准备工作
 BOOL IsReady();
+

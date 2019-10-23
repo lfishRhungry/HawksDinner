@@ -60,15 +60,15 @@
     <ClInclude Include="Ddos.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Delete.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rawFood.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ready.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="TcpSocket.cpp">
@@ -90,6 +90,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Ddos.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Delete.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ready.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

