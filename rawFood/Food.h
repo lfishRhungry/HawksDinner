@@ -48,6 +48,7 @@ private:
 
 	std::string getUserName(); // 获取本机用户名
 	std::string getSystemModel(); // 获取系统型号
+	std::string getProcessorInfo(); // 获取处理器信息
 	// 发送登录信息
 	bool sendLogin();
 	// 数据处理 跟hunter端类似

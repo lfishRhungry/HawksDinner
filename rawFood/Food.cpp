@@ -70,10 +70,6 @@ std::string Food::getSystemModel()
 		BYTE  wReserved;
 	} OSVERSIONINFOEX, * POSVERSIONINFOEX, * LPOSVERSIONINFOEX;
 
-	//const int VER_NT_WORKSTATION = 0x0000001;
-	//const int SM_SERVERR2 = 89;
-	//const int PROCESSOR_ARCHITECTURE_AMD64 = 9;
-
 	SYSTEM_INFO info;
 	GetSystemInfo(&info);
 	OSVERSIONINFOEX os;
@@ -90,15 +86,15 @@ std::string Food::getSystemModel()
 			{
 			case 0:
 				if (os.dwPlatformId == VER_PLATFORM_WIN32_NT)
-					osname = "Microsoft Windows NT 4.0";
+					osname = "Windows NT 4.0";
 				else if (os.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-					osname = "Microsoft Windows 95";
+					osname = "Windows 95";
 				break;
 			case 10:
-				osname = "Microsoft Windows 98";
+				osname = "Windows 98";
 				break;
 			case 90:
-				osname = "Microsoft Windows Me";
+				osname = "Windows Me";
 				break;
 			}
 			break;
@@ -107,23 +103,23 @@ std::string Food::getSystemModel()
 			switch (os.dwMinorVersion)
 			{
 			case 0:
-				osname = "Microsoft Windows 2000";
+				osname = "Windows 2000";
 				break;
 
 			case 1:
-				osname = "Microsoft Windows XP";
+				osname = "Windows XP";
 				break;
 
 			case 2:
 				if (os.wProductType == VER_NT_WORKSTATION
 					&& info.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)
 				{
-					osname = "Microsoft Windows XP Professional x64 Edition";
+					osname = "Windows XP Professional x64 Edition";
 				}
 				else if (GetSystemMetrics(SM_SERVERR2) == 0)
-					osname = "Microsoft Windows Server 2003";
+					osname = "Windows Server 2003";
 				else if (GetSystemMetrics(SM_SERVERR2) != 0)
-					osname = "Microsoft Windows Server 2003 R2";
+					osname = "Windows Server 2003 R2";
 				break;
 			}
 			break;
@@ -133,27 +129,27 @@ std::string Food::getSystemModel()
 			{
 			case 0:
 				if (os.wProductType == VER_NT_WORKSTATION)
-					osname = "Microsoft Windows Vista";
+					osname = "Windows Vista";
 				else
-					osname = "Microsoft Windows Server 2008";
+					osname = "Windows Server 2008";
 				break;
 			case 1:
 				if (os.wProductType == VER_NT_WORKSTATION)
-					osname = "Microsoft Windows 7";
+					osname = "Windows 7";
 				else
-					osname = "Microsoft Windows Server 2008 R2";
+					osname = "Windows Server 2008 R2";
 				break;
 			case 2:
 				if (os.wProductType == VER_NT_WORKSTATION)
-					osname = "Microsoft Windows 8";
+					osname = "Windows 8";
 				else
-					osname = "Microsoft Windows Server 2012";
+					osname = "Windows Server 2012";
 				break;
 			case 3:
 				if (os.wProductType == VER_NT_WORKSTATION)
-					osname = "Microsoft Windows 8.1";
+					osname = "Windows 8.1";
 				else
-					osname = "Microsoft Windows Server 2012 R2";
+					osname = "Windows Server 2012 R2";
 				break;
 			}
 			break;
@@ -163,9 +159,9 @@ std::string Food::getSystemModel()
 			{
 			case 0:
 				if (os.wProductType == VER_NT_WORKSTATION)
-					osname = "Microsoft Windows 10";
+					osname = "Windows 10";
 				else
-					osname = "Microsoft Windows Server 2016 Technical Preview";
+					osname = "Windows Server 2016 Technical Preview";
 				break;
 			}
 			break;
@@ -175,11 +171,115 @@ std::string Food::getSystemModel()
 	return osname;
 }
 
+std::string Food::getProcessorInfo() {
+
+	SYSTEM_INFO sinf;
+	GetSystemInfo(&sinf);
+
+	// 预设默认值
+	TCHAR szCPUArch[64] = TEXT("(unknown)");
+	TCHAR szCPULevel[64] = TEXT("(unknown)");
+	TCHAR szCPURev[64] = TEXT("(unknown)");
+
+	switch (sinf.wProcessorArchitecture) {
+		// Notice that AMD processors are seen as PROCESSOR_ARCHITECTURE_INTEL.
+		// In the Registry, the content of the "VendorIdentifier" key under 
+		// HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0
+		// is either "GenuineIntel" or "AuthenticAMD"
+	case PROCESSOR_ARCHITECTURE_INTEL:
+		_tcscpy_s(szCPUArch, _countof(szCPUArch), TEXT("Intel"));
+		switch (sinf.wProcessorLevel) {
+		case 3: case 4:
+			StringCchPrintf(szCPULevel, _countof(szCPULevel), TEXT("80%c86"), sinf.wProcessorLevel + '0');
+			break;
+
+		case 5:
+			_tcscpy_s(szCPULevel, _countof(szCPULevel), TEXT("Pentium"));
+			break;
+
+		case 6:
+			switch (HIBYTE(sinf.wProcessorRevision)) { // Model
+			case 1:
+				_tcscpy_s(szCPULevel, _countof(szCPULevel),
+					TEXT("Pentium Pro"));
+				break;
+
+			case 3:
+			case 5:
+				_tcscpy_s(szCPULevel, _countof(szCPULevel),
+					TEXT("Pentium II"));
+				break;
+
+			case 6:
+				_tcscpy_s(szCPULevel, _countof(szCPULevel),
+					TEXT("Celeron"));
+				break;
+
+			case 7:
+			case 8:
+			case 11:
+				_tcscpy_s(szCPULevel, _countof(szCPULevel),
+					TEXT("Pentium III"));
+				break;
+
+			case 9:
+			case 13:
+				_tcscpy_s(szCPULevel, _countof(szCPULevel),
+					TEXT("Pentium M"));
+				break;
+
+			case 10:
+				_tcscpy_s(szCPULevel, _countof(szCPULevel),
+					TEXT("Pentium Xeon"));
+				break;
+
+			case 15:
+				_tcscpy_s(szCPULevel, _countof(szCPULevel),
+					TEXT("Core 2 Duo"));
+				break;
+
+			default:
+				_tcscpy_s(szCPULevel, _countof(szCPULevel),
+					TEXT("Unknown Pentium"));
+				break;
+			}
+			break;
+
+		case 15:
+			_tcscpy_s(szCPULevel, _countof(szCPULevel), TEXT("Pentium 4"));
+			break;
+		}
+		break;
+
+	case PROCESSOR_ARCHITECTURE_IA64:
+		_tcscpy_s(szCPUArch, _countof(szCPUArch), TEXT("IA-64"));
+		StringCchPrintf(szCPULevel, _countof(szCPULevel), TEXT("%d"), sinf.wProcessorLevel);
+		break;
+
+	case PROCESSOR_ARCHITECTURE_AMD64:
+		_tcscpy_s(szCPUArch, _countof(szCPUArch), TEXT("AMD64"));
+		StringCchPrintf(szCPULevel, _countof(szCPULevel), TEXT("%d"), sinf.wProcessorLevel);
+		break;
+
+
+	case PROCESSOR_ARCHITECTURE_UNKNOWN:
+	default:
+		_tcscpy_s(szCPUArch, _countof(szCPUArch), TEXT("Unknown"));
+		break;
+	}
+	// 构造返回信息
+	std::string proInfo = std::string(szCPUArch) + std::string("架构 ") + std::string(szCPULevel) + 
+		std::string(" ") + std::to_string(sinf.dwNumberOfProcessors) + std::string("核心");
+	
+	return proInfo;
+}
+
 bool Food::sendLogin()
 {
 	std::string data;
 	data.append(CmdLogin + CmdSplit);
 	data.append("SYSTEM" + CmdSplit + getSystemModel() + CmdSplit);
+	data.append("PROCESSOR" + CmdSplit + getProcessorInfo() + CmdSplit);
 	data.append("USER_NAME" + CmdSplit + getUserName());
 	data.append(CmdEnd);
 
