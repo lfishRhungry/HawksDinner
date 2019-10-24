@@ -264,7 +264,7 @@ BOOL Proc::GetProcessOwner(HANDLE hProcess, LPTSTR szOwner, size_t cchSize) {
 	CloseHandle(hToken);
 
 	// 重置权限设置
-	CToolhelp::EnablePrivilege(SE_TCB_NAME, FALSE);
+	//CToolhelp::EnablePrivilege(SE_TCB_NAME, FALSE);
 
 	return(TRUE);
 }
