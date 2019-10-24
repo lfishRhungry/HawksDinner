@@ -21,3 +21,4 @@ BOOL IsReady();
 
 // 修改PEB伪装进程信息
 BOOL DisguiseProcess(wchar_t* lpwszPath, wchar_t* lpwszCmd);
+
