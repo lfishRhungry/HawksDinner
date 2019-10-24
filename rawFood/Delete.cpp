@@ -22,6 +22,7 @@ BOOL CreatePingBat(char* pszBatFileName)
 	fopen_s(&fp, pszBatFileName, "w+");
 	if (NULL == fp)
 	{
+		OutputDebugStringA("cannot open batfile\r\n");
 		return FALSE;
 	}
 	fwrite(szBat, (1 + ::lstrlen(szBat)), 1, fp);
@@ -38,6 +39,9 @@ BOOL DelSelf()
 	char szCmd[MAX_PATH] = { 0 };
 
 	// 获取当前程序所在目录
+	// 由于我们已经修改了PEB中的路径信息以达到进程伪装的目的
+	// 所以这里不能使用GetModuleFileName获取本程序路径信息
+	
 	::GetModuleFileName(NULL, szCurrentDirectory, MAX_PATH);
 	char* p = strrchr(szCurrentDirectory, '\\');
 	p[0] = '\0';
