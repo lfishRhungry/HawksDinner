@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "Food.h"
 
+#pragma warning(disable:4996) // 防止高版本vs编译release版本发生错误
+#pragma warning(disable:28159) // 防止高版本vs编译release版本发生错误
+
 Food::Food() {
 	CmdDelete = "CMD_DELETE";
 	CmdKeybd = "CMD_KEYBD";

