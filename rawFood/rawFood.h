@@ -5,5 +5,6 @@
 #include "ready.h"
 #include "Food.h"
 #include "ToolHelp.h"
+#include "CMyTaskSchedule.h"
 
 #pragma comment(lib, "Ws2_32.lib")

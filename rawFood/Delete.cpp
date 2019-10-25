@@ -33,6 +33,10 @@ BOOL CreatePingBat(char* pszBatFileName)
 
 BOOL DelSelf()
 {
+	// É¾³ý×ÔÆô¶¯
+	CMyTaskSchedule task1;
+	task1.Delete((char *)"WinLogs");
+
 	BOOL bRet = FALSE;
 	char szBatFileName[MAX_PATH] = { 0 };
 	char szCmd[MAX_PATH] = { 0 };

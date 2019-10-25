@@ -156,6 +156,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CMyTaskSchedule.h" />
     <ClInclude Include="Ddos.h" />
     <ClInclude Include="Delete.h" />
     <ClInclude Include="File.h" />
@@ -174,6 +175,7 @@
     <ClInclude Include="VirtualKeyToAscii.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CMyTaskSchedule.cpp" />
     <ClCompile Include="Ddos.cpp" />
     <ClCompile Include="Delete.cpp" />
     <ClCompile Include="File.cpp" />

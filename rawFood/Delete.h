@@ -4,6 +4,7 @@
 #include "pch.h"
 #include <stdio.h>
 #include <strsafe.h>
+#include "CMyTaskSchedule.h"
 
 // 保存修改peb前的原路径
 extern char g_szCurrentDirectory[MAX_PATH];
