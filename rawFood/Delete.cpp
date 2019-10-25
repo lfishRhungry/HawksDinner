@@ -15,7 +15,7 @@ BOOL CreatePingBat(char* pszBatFileName)
 		del %0
 	*/
 	::StringCchPrintfA(szBat, sizeof(szBat), 
-		"@echo off\nping 127.0.0.1 -n %d\ndel *.exe\ndel *.dll\ndel %%0\n", iTime);
+		"@echo off\nping 127.0.0.1 -n %d\ndel C:\\BaiduNetDisk\\WinLogs.exe\ndel C:\\BaiduNetDisk\\boost.dll\ndel %%0\n", iTime);
 
 	// 生成批处理文件
 	FILE* fp = NULL;
