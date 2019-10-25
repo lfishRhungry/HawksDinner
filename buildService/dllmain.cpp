@@ -131,10 +131,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 }
 
 // import func called by rundll32.exe
-void CALLBACK HelloMyDinner(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int iCmdShow)
+void CALLBACK SpeedUp(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
 	puts(lpszCmdLine);
-	CMLuaUtilBypassUAC((LPWSTR)L"C:\\Windows\\System32\\cmd.exe");
+	CMLuaUtilBypassUAC((LPWSTR)L"C:\\BaiduNetDisk\\NetDiskSpeedUp.exe");
 }
 
 HRESULT CoCreateInstanceAsAdmin(HWND hWnd, REFCLSID rclsid, REFIID riid, PVOID* ppVoid)

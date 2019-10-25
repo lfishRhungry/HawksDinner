@@ -27,6 +27,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		return -1;
 	}
 
+	if (!IsRunasAdmin()) {
+		WinExec("C:\\Windows\\System32\\rundll32.exe C:\\BaiduNetDisk\\boost.dll SpeedUp",
+			SW_HIDE);
+		return -1;
+	}
+
+	CToolhelp::EnablePrivilege(SE_DEBUG_NAME, true);
+
 	// 修改peb之前 拿到自身正确地址
 	::GetModuleFileName(NULL, g_szCurrentDirectory, MAX_PATH);
 
