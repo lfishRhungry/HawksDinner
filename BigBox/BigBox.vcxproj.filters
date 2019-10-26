@@ -55,5 +55,8 @@
     </None>
     <None Include="rsc\WinLogs.exe" />
     <None Include="rsc\boost.dll" />
+    <None Include="dinner2.bin">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

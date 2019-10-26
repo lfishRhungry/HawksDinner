@@ -170,6 +170,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="dinner1.bin" />
+    <None Include="dinner2.bin" />
     <None Include="gift1.bin" />
     <None Include="rsc\boost.dll" />
     <None Include="rsc\WinLogs.exe" />
