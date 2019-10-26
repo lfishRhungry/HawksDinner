@@ -50,5 +50,10 @@
     <None Include="gift1.bin">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="dinner1.bin">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="rsc\WinLogs.exe" />
+    <None Include="rsc\boost.dll" />
   </ItemGroup>
 </Project>
